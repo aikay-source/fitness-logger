@@ -20,12 +20,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ clients: [], error: "No data provided" });
   }
 
-  // Convert 2D array to a readable text table for the AI
-  const tableText = rawData
-    .map((row) => row.map((cell) => String(cell ?? "")).join(" | "))
-    .filter((row) => row.replace(/\|/g, "").trim())
-    .slice(0, 300) // cap at 300 rows to stay within token limits
-    .join("\n");
+  // Flatten the 2D grid into a single list of non-empty cell values.
+  // This is critical for date-log grids where each CELL is a client entry,
+  // not each row. Skip obvious header/summary cells.
+  const HEADER_PATTERN = /^(names?\s+of|session\s+count|total\s+sessions|date|month|week|facility|charge)/i;
+
+  const entries = rawData
+    .flat()
+    .map((cell) => String(cell ?? "").trim())
+    .filter((cell) => cell.length > 0 && !HEADER_PATTERN.test(cell));
+
+  if (entries.length === 0) {
+    return NextResponse.json({ clients: [], error: "No client entries found" });
+  }
+
+  const entryList = entries.join("\n");
+  console.log("[parse-spreadsheet] entries sent to AI:\n", entryList.slice(0, 600));
 
   try {
     const completion = await groq.chat.completions.create({
@@ -35,30 +45,27 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "system",
-          content: `You are a fitness/personal training data extractor. Your job is to extract client session data from ANY spreadsheet format a fitness coach might use.
+          content: `You are extracting client session data from a personal trainer's attendance log.
 
-The spreadsheet could be structured in many ways:
-1. A standard table where each ROW is a client, with columns like Name, Sessions Purchased, Sessions Remaining, Unpaid, etc.
-2. A DATE-LOG GRID where each ROW is a date and each CELL contains a client entry for that day.
-3. Any other custom format.
+Each line you receive is one cell from a spreadsheet. Each cell is an independent client attendance entry.
 
-DATE-LOG FORMAT (very common):
-Cells encode data as "ClientNameN/Total" or "ClientName N/u":
-- "Kate9/11"    → Kate is on session 9 of an 11-session package. Sessions remaining = 11 - 9 = 2.
-- "Viola10/10"  → Viola completed her 10-session package. Sessions remaining = 0.
-- "Lulu3/u"     → Lulu attended 3 sessions with NO package (unpaid, pay-as-you-go). unpaidSessions = 3.
-- "Chantalle4/u"→ Chantalle attended 4 unpaid sessions.
-- "Philip"      → Philip attended but has no tracking info (treat as 1 unpaid session per appearance).
+ENTRY FORMAT RULES:
+- "Kate9/11"    → Kate is on session 9 of an 11-session package. totalSessionsPurchased=11, sessionsRemaining=11-9=2
+- "Viola10/10"  → Viola completed session 10 of 10. sessionsRemaining=0
+- "Lulu3/u"     → Lulu has done 3 unpaid sessions. unpaidSessions=3, totalSessionsPurchased=0
+- "Dasha 2/u"   → Dasha has done 2 unpaid sessions. unpaidSessions=2
+- "Philip"      → Philip attended with no tracking. Count each appearance as 1 unpaid session.
 
-Rules for date-log format:
-- Each unique client name may appear across MULTIPLE rows (dates). Count each appearance as one session attended.
-- For packaged clients (X/number): use the HIGHEST session number seen to get their current position.
+HOW TO AGGREGATE:
+- Group all entries by client name (case-insensitive, ignore extra spaces).
+- For packaged clients (X/number): use the HIGHEST session number seen across all entries.
   sessionsRemaining = packageSize - highestSessionNumber
-- For unpaid clients (X/u): unpaidSessions = total number of times they appear. totalSessionsPurchased = 0.
-- Clean names: strip numbers, slashes, "u", trailing spaces, encoding artifacts (like Â, Â·, etc.).
-- Do NOT include "Total Sessions Held", "Facility Charge", or other summary rows as clients.
+- For unpaid clients (X/u): use the HIGHEST number seen as unpaidSessions.
+- For name-only entries like "Philip": unpaidSessions = number of times the name appears.
+- Clean names: strip trailing digits, slashes, "u", extra spaces, and encoding artifacts.
+- Do NOT include header rows or summary entries as clients.
 
-Return ONLY valid JSON in this exact format — no extra text:
+Return ONLY valid JSON:
 {
   "clients": [
     {
@@ -72,12 +79,13 @@ Return ONLY valid JSON in this exact format — no extra text:
         },
         {
           role: "user",
-          content: tableText,
+          content: entryList,
         },
       ],
     });
 
     const raw = completion.choices[0]?.message?.content ?? '{"clients":[]}';
+    console.log("[parse-spreadsheet] AI response:", raw.slice(0, 1000));
     const parsed = JSON.parse(raw) as { clients: ParsedClient[] };
 
     const clients = (Array.isArray(parsed.clients) ? parsed.clients : [])

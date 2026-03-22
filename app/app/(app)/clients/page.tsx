@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { PlusCircle, Upload } from "lucide-react";
+import DeleteAllButton from "./DeleteAllButton";
 
 function sessionBadgeClass(remaining: number) {
   if (remaining <= 2) return "bg-red-500/20 text-red-400";
@@ -41,6 +42,7 @@ export default async function ClientsPage() {
           </h1>
         </div>
         <div className="flex items-center gap-2">
+          {clients.length > 0 && <DeleteAllButton count={clients.length} />}
           <Link
             href="/clients/import"
             className="flex items-center gap-1.5 rounded-lg border border-[#3d3d3c] px-3 py-2 text-xs font-semibold text-[#a3a29f] hover:border-[#5e5e5c] hover:text-[#f2f1ed] transition-colors"

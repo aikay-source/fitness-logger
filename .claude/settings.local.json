@@ -23,7 +23,10 @@
       "Bash(gh auth:*)",
       "Bash(git init:*)",
       "Bash(git rm:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(gh repo:*)",
+      "Bash(find:*)"
     ]
   }
 }

@@ -38,3 +38,14 @@ export async function GET() {
 
   return NextResponse.json(clients);
 }
+
+export async function DELETE() {
+  const session = await getServerSession(authOptions);
+  if (!session) return new NextResponse("Unauthorized", { status: 401 });
+
+  const { count } = await prisma.client.deleteMany({
+    where: { coachId: session.user.id },
+  });
+
+  return NextResponse.json({ deleted: count });
+}

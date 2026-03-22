@@ -193,8 +193,13 @@ Tasks:
 - [x] `/clients/import` page — CSV/Excel 3-step flow: upload → column mapping (auto-detects headers) → preview → bulk import
 - [x] Column mapping includes: Name, Sessions Purchased, Sessions Remaining, Unpaid Sessions, Phone
 - [x] `/api/clients/import` — bulk `createMany`; enforces unpaidSessions = 0 when sessionsRemaining > 0
-- [x] `/api/clients` POST — create single client
-- [x] `/api/clients/[id]` PATCH/DELETE — update package + unpaid; soft delete
+- [x] `/api/clients` POST — create single client; DELETE — bulk delete all clients for coach
+- [x] `/api/clients/[id]` PATCH/DELETE — update package + unpaid; hard delete (cascades to sessions)
+- [x] Client detail page — "Danger zone" section with modal confirmation to delete individual client
+- [x] Client list page — "Delete all (N)" button with modal confirmation to remove all clients
+- [x] Import preview — shows all rows (not just first 5) in a scrollable list
+- [x] Import preview copy — changed from `3/10 sessions remaining` to `3 of 10 sessions left` for clarity
+- [x] Smart Import AI parser — flattens 2D grid to per-cell entries before sending to AI; handles date-log grid format (e.g. `Kate9/11`, `Lulu3/u`, `Philip`)
 
 **Business rule:** `unpaidSessions` is only valid when `sessionsRemaining = 0`. Enforced at every entry point: log session action, add client form, client detail edit, and import API.
 

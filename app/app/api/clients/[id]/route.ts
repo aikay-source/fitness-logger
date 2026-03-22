@@ -57,8 +57,7 @@ export async function DELETE(
   });
   if (!existing) return new NextResponse("Not found", { status: 404 });
 
-  // Soft delete
-  await prisma.client.update({ where: { id }, data: { active: false } });
+  await prisma.client.delete({ where: { id } });
 
   return new NextResponse(null, { status: 204 });
 }

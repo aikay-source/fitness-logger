@@ -152,7 +152,7 @@ export default function ImportPage() {
 
       setAiClients(clients);
       setPreview(
-        clients.slice(0, 5).map((c) => ({
+        clients.map((c) => ({
           name: c.name,
           totalSessionsPurchased: c.totalSessionsPurchased,
           sessionsRemaining: c.sessionsRemaining,
@@ -193,7 +193,7 @@ export default function ImportPage() {
   }
 
   function buildPreview() {
-    const rows = rawRows.slice(0, 5).map((row) => {
+    const rows = rawRows.map((row) => {
       const name = row[columnMap.name]?.trim() ?? "";
       const purchased = Number(row[columnMap.totalSessionsPurchased]);
       const remaining = Number(row[columnMap.sessionsRemaining]);
@@ -502,15 +502,11 @@ export default function ImportPage() {
               </div>
             )}
             <p className="font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
-              Preview (first {preview.length})
-            </p>
-            <p className="text-xs text-[#5e5e5c]">
-              {totalToImport} total client{totalToImport !== 1 ? "s" : ""} will
-              be imported
+              {totalToImport} client{totalToImport !== 1 ? "s" : ""} ready to import
             </p>
           </div>
 
-          <div className="divide-y divide-[#3d3d3c] rounded-xl border border-[#3d3d3c] bg-[#1e1e1d]">
+          <div className="max-h-96 overflow-y-auto divide-y divide-[#3d3d3c] rounded-xl border border-[#3d3d3c] bg-[#1e1e1d]">
             {preview.map((row, i) => (
               <div key={i} className="flex items-center gap-3 px-4 py-3">
                 {row.valid ? (
@@ -528,8 +524,13 @@ export default function ImportPage() {
                     <p className="text-xs text-red-400">{row.error}</p>
                   ) : (
                     <p className="font-mono text-xs text-[#5e5e5c]">
-                      {row.sessionsRemaining}/{row.totalSessionsPurchased}{" "}
-                      sessions remaining
+                      {row.totalSessionsPurchased > 0 ? (
+                        <>
+                          {row.sessionsRemaining} of {row.totalSessionsPurchased} sessions left
+                        </>
+                      ) : (
+                        <>No package</>
+                      )}
                       {row.unpaidSessions > 0 && (
                         <span className="ml-2 text-purple-400">
                           · {row.unpaidSessions} unpaid
