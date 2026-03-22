@@ -6,9 +6,9 @@ import { PlusCircle, Upload } from "lucide-react";
 import DeleteAllButton from "./DeleteAllButton";
 
 function sessionBadgeClass(remaining: number) {
-  if (remaining <= 2) return "bg-red-500/20 text-red-400";
-  if (remaining <= 5) return "bg-amber-500/20 text-amber-400";
-  return "bg-emerald-500/20 text-emerald-400";
+  if (remaining <= 2) return "bg-red-500/15 text-red-400";
+  if (remaining <= 5) return "bg-amber-500/15 text-amber-400";
+  return "bg-[#2a2a29] text-[#a3a29f]";
 }
 
 function initials(name: string) {
@@ -103,7 +103,7 @@ export default async function ClientsPage() {
               {/* Badges */}
               <div className="flex shrink-0 items-center gap-1.5">
                 {client.unpaidSessions > 0 && (
-                  <span className="rounded-full bg-purple-500/20 px-2.5 py-0.5 font-mono text-xs font-semibold text-purple-400">
+                  <span className="rounded-full bg-orange-500/15 px-2.5 py-0.5 font-mono text-xs font-semibold text-orange-400">
                     {client.unpaidSessions} unpaid
                   </span>
                 )}

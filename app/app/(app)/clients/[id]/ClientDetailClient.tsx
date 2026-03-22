@@ -107,15 +107,15 @@ export default function ClientDetailClient({ client }: { client: Client }) {
           <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
             Unpaid sessions
           </h2>
-          <div className="rounded-xl border border-purple-500/30 bg-purple-500/10 p-4">
+          <div className="rounded-xl border border-[#3d3d3c] border-l-2 border-l-orange-500 bg-[#1e1e1d] p-4 overflow-hidden">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <DollarSign size={16} className="text-purple-400 shrink-0" />
+                <DollarSign size={16} className="text-orange-400 shrink-0" />
                 <div>
                   <p className="text-sm font-medium text-[#f2f1ed]">
                     {unpaid} session{unpaid !== 1 ? "s" : ""} owed
                   </p>
-                  <p className="text-xs text-purple-300">
+                  <p className="text-xs text-orange-400/60">
                     Trained without remaining balance
                   </p>
                 </div>
@@ -123,7 +123,7 @@ export default function ClientDetailClient({ client }: { client: Client }) {
               <button
                 onClick={markSettled}
                 disabled={settling}
-                className="rounded-lg bg-purple-500/30 px-3 py-1.5 font-mono text-xs font-semibold text-purple-300 hover:bg-purple-500/50 disabled:opacity-50 transition-colors"
+                className="rounded-lg border border-[#3d3d3c] bg-[#262625] px-3 py-1.5 font-mono text-xs font-semibold text-[#a3a29f] hover:border-[#5e5e5c] hover:text-[#f2f1ed] disabled:opacity-50 transition-colors"
               >
                 {settling ? "…" : "Mark settled"}
               </button>
