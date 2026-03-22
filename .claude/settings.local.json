@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx skills:*)",
+      "Bash(npx:*)",
+      "Bash(cd:*)",
+      "Bash(npm install:*)",
+      "Bash(cat:*)",
+      "Bash(npm run:*)",
+      "Bash(node:*)",
+      "Bash(pnpm dlx:*)",
+      "Bash(ls:*)",
+      "Bash(curl -s http://localhost:5173)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(netstat -ano)",
+      "Bash(taskkill /PID 7308 /F)",
+      "Bash(taskkill /PID 4228 /F)",
+      "Bash(taskkill /PID 27560 /F)",
+      "Bash(cmd.exe /c \"taskkill /PID 7308 /F & taskkill /PID 4228 /F & taskkill /PID 27560 /F\")",
+      "Bash(cmd.exe /c \"taskkill /PID 7308 /F\")",
+      "Bash(cmd.exe /c \"taskkill /PID 7308 /F 2>&1\")",
+      "Bash(powershell -Command \"Stop-Process -Id 7308 -Force -ErrorAction SilentlyContinue; Stop-Process -Id 4228 -Force -ErrorAction SilentlyContinue; Stop-Process -Id 27560 -Force -ErrorAction SilentlyContinue; Write-Host 'Done'\"2)",
+      "Bash(gh auth:*)",
+      "Bash(git init:*)",
+      "Bash(git rm:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}

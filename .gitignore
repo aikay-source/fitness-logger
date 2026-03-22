@@ -1,0 +1,25 @@
+# Next.js
+app/.next/
+app/out/
+
+# Dependencies
+app/node_modules/
+
+# Environment variables (NEVER commit these)
+app/.env
+app/.env.local
+app/.env.*.local
+
+# Prisma SQLite database
+app/prisma/*.db
+app/prisma/*.db-journal
+
+# Build output
+app/build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code local settings
+.claude/settings.local.json
