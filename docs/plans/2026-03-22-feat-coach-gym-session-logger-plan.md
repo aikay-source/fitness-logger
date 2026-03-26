@@ -376,9 +376,9 @@ Settings (`/settings`):
 
 #### New Dependency
 
-- [ ] `npm install framer-motion canvas-confetti`
-- [ ] `npm install -D @types/canvas-confetti`
-- [ ] Create `lib/motion.config.ts` with shared spring/easing constants:
+- [x] `npm install framer-motion canvas-confetti`
+- [x] `npm install -D @types/canvas-confetti`
+- [x] Create `lib/motion.config.ts` with shared spring/easing constants:
 
 ```ts
 export const spring = { type: 'spring', stiffness: 400, damping: 30 };
@@ -388,15 +388,15 @@ export const easeOut = { duration: 0.2, ease: 'easeOut' };
 
 #### Product Mechanics
 
-- [ ] **Conversational quick-log UI** — the AI reply animates in as a chat bubble after parsing; confirmation is a single large tap target. Replaces the current "form-style" confirmation card.
-- [ ] **Package completion moment** — when `sessionsRemaining` hits 0 after a log, replace the standard confirmation toast with a special full-width card: *"[Name] just finished their package — time to renew?"* with an inline CTA to update the package. Implemented in `logSession` server action: detect `sessionsRemaining === 0` post-decrement and return a `completedPackage: true` flag to the client.
-- [ ] **Quiet streak counter on dashboard** — query consecutive days with at least one session logged. Display as *"🔥 N days logged"* only when streak ≥ 2. Zero-config, just a DB query on page load. Hide if streak is 0 or 1.
-- [ ] **Personal coach stats on dashboard** — surface *"X sessions this month · Most active: [Name]"* below the greeting. Computed from existing session data, no new models needed.
-- [ ] **Time-aware greeting** — dashboard header reads *"Good morning, Coach."* / *"Good afternoon."* / *"Good evening."* based on `new Date().getHours()` client-side.
+- [x] **Conversational quick-log UI** — the AI reply animates in as a chat bubble after parsing; confirmation is a single large tap target. Replaces the current "form-style" confirmation card.
+- [x] **Package completion moment** — when `sessionsRemaining` hits 0 after a log, replace the standard confirmation toast with a special full-width card: *"[Name] just finished their package — time to renew?"* with an inline CTA to update the package. Implemented in `logSession` server action: detect `sessionsRemaining === 0` post-decrement and return a `completedPackage: true` flag to the client.
+- [x] **Quiet streak counter on dashboard** — query consecutive days with at least one session logged. Display as *"🔥 N days logged"* only when streak ≥ 2. Zero-config, just a DB query on page load. Hide if streak is 0 or 1.
+- [x] **Personal coach stats on dashboard** — surface *"X sessions this month · Most active: [Name]"* below the greeting. Computed from existing session data, no new models needed.
+- [x] **Time-aware greeting** — dashboard header reads *"Good morning, Coach."* / *"Good afternoon."* / *"Good evening."* based on `new Date().getHours()` client-side.
 
 #### Motion
 
-- [ ] **Session count number roll** — wrap all `sessionsRemaining` displays in an `<AnimatedNumber>` component using Framer Motion's `AnimatePresence`. When value changes, old number exits upward (`y: -12, opacity: 0`), new number enters from below (`y: 12 → 0`). Used on client cards and the post-log confirmation.
+- [x] **Session count number roll** — wrap all `sessionsRemaining` displays in an `<AnimatedNumber>` component using Framer Motion's `AnimatePresence`. When value changes, old number exits upward (`y: -12, opacity: 0`), new number enters from below (`y: 12 → 0`). Used on client cards and the post-log confirmation.
 
 ```tsx
 // components/AnimatedNumber.tsx
@@ -413,7 +413,7 @@ export const easeOut = { duration: 0.2, ease: 'easeOut' };
 </AnimatePresence>
 ```
 
-- [ ] **Subtle confetti on session confirm** — fire `canvas-confetti` once, at the moment the coach taps "Confirm". 30 particles, high gravity (falls fast), 0.4s duration. Not looping. Not full-screen. Called only from the session confirmation handler.
+- [x] **Subtle confetti on session confirm** — fire `canvas-confetti` once, at the moment the coach taps "Confirm". 30 particles, high gravity (falls fast), 0.4s duration. Not looping. Not full-screen. Called only from the session confirmation handler.
 
 ```ts
 // lib/confetti.ts
@@ -423,15 +423,15 @@ export function celebrateSession() {
 }
 ```
 
-- [ ] **Spring press on all interactive elements** — apply `whileTap={{ scale: 0.96 }}` + `transition={spring}` to all `<Button>`, primary cards, and confirm targets. Wrap in a shared `<Pressable>` component to avoid repetition.
+- [x] **Spring press on all interactive elements** — apply `whileTap={{ scale: 0.96 }}` + `transition={spring}` to all `<Button>`, primary cards, and confirm targets. Wrap in a shared `<Pressable>` component to avoid repetition.
 
-- [ ] **Staggered card entrance on roster** — wrap the client list in a Framer Motion `variants` container with `staggerChildren: 0.04`. Each card mounts with `y: 8 → 0, opacity: 0 → 1`.
+- [x] **Staggered card entrance on roster** — wrap the client list in a Framer Motion `variants` container with `staggerChildren: 0.04`. Each card mounts with `y: 8 → 0, opacity: 0 → 1`.
 
-- [ ] **Report numbers count up** — on `/reports` page mount, animate all summary stat numbers from 0 to their final value over 800ms using a custom `useCountUp(target, duration)` hook with `requestAnimationFrame`.
+- [x] **Report numbers count up** — on `/reports` page mount, animate all summary stat numbers from 0 to their final value over 800ms using a custom `useCountUp(target, duration)` hook with `requestAnimationFrame`.
 
-- [ ] **Animated package progress ring** — SVG circle on each client card/detail. Animates `stroke-dashoffset` from full (empty) to the correct fill position on mount. Color: green (`#22c55e`) > 5 sessions, amber (`#f59e0b`) 3–5, red (`#ef4444`) ≤ 2. Transition on log: re-animates forward by one step.
+- [x] **Animated package progress ring** — SVG circle on each client card/detail. Animates `stroke-dashoffset` from full (empty) to the correct fill position on mount. Color: green (`#22c55e`) > 5 sessions, amber (`#f59e0b`) 3–5, red (`#ef4444`) ≤ 2. Transition on log: re-animates forward by one step.
 
-- [ ] **Contextual toast copy** — replace all generic "Session logged" toasts with context-aware messages. Create `lib/toast-messages.ts`:
+- [x] **Contextual toast copy** — replace all generic "Session logged" toasts with context-aware messages. Create `lib/toast-messages.ts`:
 
 ```ts
 export function sessionLoggedMessage(clientCount: number, lowClients: string[]): string {
@@ -524,10 +524,10 @@ Cron `low-session-check` →
 - [x] **Unpaid rule:** `unpaidSessions` only set when `sessionsRemaining = 0` — enforced at log, add, edit, and import
 
 ### Non-Functional
-- [ ] PWA: app is installable on iOS Safari and Android Chrome
-- [ ] Groq API errors do not crash the app; fallback to manual log is always available
-- [ ] All cron routes return 401 without correct `CRON_SECRET`
-- [ ] SQLite in dev; schema is Supabase/Postgres-ready with one provider change
+- [x] PWA: app is installable on iOS Safari and Android Chrome
+- [x] Groq API errors do not crash the app; fallback to manual log is always available
+- [x] All cron routes return 401 without correct `CRON_SECRET`
+- [x] SQLite in dev; schema is Supabase/Postgres-ready with one provider change
 
 ### Delight (Phase 7)
 - [ ] Session count decrements with a visible number roll animation

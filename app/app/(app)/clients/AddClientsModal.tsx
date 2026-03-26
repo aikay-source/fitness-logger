@@ -452,6 +452,7 @@ export default function AddClientsModal({
                     value={form.name}
                     onChange={handleFormChange}
                     placeholder="Alex Johnson"
+                    maxLength={100}
                     className={inputClass + (nameError ? " !border-red-500" : "")}
                   />
                   {nameError && (
@@ -735,6 +736,7 @@ export default function AddClientsModal({
                                         value={row.name}
                                         onChange={(e) => updateRow(i, "name", e.target.value)}
                                         placeholder="name…"
+                                        maxLength={100}
                                         className={cellInputClass + " min-w-0 flex-1"}
                                       />
                                       {!row.valid && (

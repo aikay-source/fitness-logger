@@ -68,7 +68,7 @@ export default function SettingsClient({
     <div className="mx-auto max-w-lg px-4 pt-8 space-y-8">
       <div>
         <p className={labelClass}>Preferences</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[#f2f1ed]">
+        <h1 className="mt-1 font-heading text-2xl font-semibold tracking-tight text-[#f2f1ed]">
           Settings
         </h1>
       </div>

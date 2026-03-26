@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { Sparkles, List, Check, AlertCircle, Loader2, X } from "lucide-react";
+import { Check, AlertCircle, Loader2, X } from "lucide-react";
 import { logSession } from "@/app/actions/sessions";
-import { matchNames, type ClientStub, type MatchResult } from "@/lib/fuzzy-match";
+import { type ClientStub, type MatchResult } from "@/lib/fuzzy-match";
 import { enqueueSession } from "@/lib/offline-queue";
+import confetti from "canvas-confetti";
 
 type Client = ClientStub & { sessionsRemaining: number };
-
-type Tab = "ai" | "manual";
 
 type ConfirmState = {
   matched: MatchResult[];
@@ -38,64 +38,17 @@ function toastMessage(count: number, completed: string[], low: string[], unpaid:
 
 export default function SessionLogger({ clients }: { clients: Client[] }) {
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>("ai");
 
-  // AI tab state
-  const [aiText, setAiText] = useState("");
-  const [parsing, setParsing] = useState(false);
-
-  // Manual tab state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [manualDate, setManualDate] = useState(
     new Date().toISOString().slice(0, 10)
   );
   const [notes, setNotes] = useState("");
+  const [search, setSearch] = useState("");
 
-  // Shared confirmation state
+  // Confirmation state
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
   const [committing, setCommitting] = useState(false);
-
-  // ── AI Quick Log ──────────────────────────────────────────────────────────
-
-  async function handleAIParse() {
-    if (!aiText.trim()) return;
-    setParsing(true);
-    try {
-      const res = await fetch("/api/ai/parse-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: aiText }),
-      });
-      const data = (await res.json()) as { clients: string[]; error?: string };
-
-      if (data.error) {
-        toast.error("AI parsing failed — check the server console for details, or use manual log.");
-        return;
-      }
-      if (data.clients.length === 0) {
-        toast.error("No names found in that text. Try: \"trained John and Sarah today\"");
-        return;
-      }
-
-      const matched = matchNames(data.clients, clients);
-      const matchedIds = matched
-        .filter((m): m is { matched: true; client: ClientStub } => m.matched)
-        .map((m) => m.client.id);
-
-      setConfirm({
-        matched,
-        selectedIds: matchedIds,
-        date: new Date(),
-        notes: aiText,
-      });
-    } catch {
-      toast.error("Network error. Try manual log.");
-    } finally {
-      setParsing(false);
-    }
-  }
-
-  // ── Manual Log ────────────────────────────────────────────────────────────
 
   function toggleClient(id: string) {
     setSelectedIds((prev) => {
@@ -145,13 +98,21 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
         toast.error(result.error ?? "Failed to log sessions.");
         return;
       }
+      // Celebrate!
+      confetti({
+        particleCount: result.sessionCount > 2 ? 80 : 40,
+        spread: 60,
+        origin: { y: 0.7 },
+        colors: ["#f2f1ed", "#a3a29f", "#3d3d3c"],
+        disableForReducedMotion: true,
+      });
       toast.success(
         toastMessage(result.sessionCount, result.completedPackages, result.lowSessions, result.unpaidAdded),
         { duration: result.completedPackages.length > 0 ? 6000 : 4000 }
       );
       router.push("/dashboard");
     } catch {
-      toast.error("Something went wrong.");
+      toast.error("Something went wrong. Try again or pick clients manually.");
     } finally {
       setCommitting(false);
     }
@@ -166,14 +127,10 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
     const matchedClients = confirm.matched.filter(
       (m): m is { matched: true; client: ClientStub } => m.matched
     );
-    const unmatched = confirm.matched.filter(
-      (m): m is { matched: false; input: string } => !m.matched
-    );
-
     return (
       <div className="mx-auto max-w-lg px-4 pt-8 space-y-6">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-[#f2f1ed]">
+          <h1 className="font-heading text-2xl font-semibold tracking-tight text-[#f2f1ed]">
             Confirm session
           </h1>
           <p className="mt-1 text-sm text-[#a3a29f]">
@@ -187,12 +144,15 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
 
         {/* Matched clients */}
         <div className="divide-y divide-[#3d3d3c] rounded-xl border border-[#3d3d3c] bg-[#1e1e1d]">
-          {matchedClients.map(({ client }) => {
+          {matchedClients.map(({ client }, i) => {
             const full = clients.find((c) => c.id === client.id);
             const remaining = full ? full.sessionsRemaining - 1 : "?";
             return (
-              <div
+              <motion.div
                 key={client.id}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.2, delay: i * 0.06, ease: [0.2, 0, 0, 1] }}
                 className="flex items-center gap-3 px-4 py-3"
               >
                 <Check size={14} className="text-emerald-400 shrink-0" />
@@ -200,26 +160,12 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
                 <span
                   className={`font-mono text-xs ${sessionBadgeClass(Number(remaining))}`}
                 >
-                  {remaining} left after
+                  → {remaining} left
                 </span>
-              </div>
+              </motion.div>
             );
           })}
         </div>
-
-        {/* Unmatched names */}
-        {unmatched.length > 0 && (
-          <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 space-y-1">
-            <p className="font-mono text-xs font-semibold uppercase tracking-widest text-amber-400">
-              Could not match
-            </p>
-            {unmatched.map((u) => (
-              <p key={u.input} className="text-sm text-amber-300">
-                "{u.input}" — not found in your roster
-              </p>
-            ))}
-          </div>
-        )}
 
         <div className="flex gap-3">
           <button
@@ -252,168 +198,109 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
 
   return (
     <div className="mx-auto max-w-lg px-4 pt-8 space-y-6">
-      <h1 className="text-2xl font-semibold tracking-tight text-[#f2f1ed]">
-        Log sessions
-      </h1>
-
-      {/* Tab toggle */}
-      <div className="flex rounded-lg border border-[#3d3d3c] bg-[#1e1e1d] p-1">
-        {(["ai", "manual"] as Tab[]).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-md py-2 text-sm font-medium transition-colors ${
-              tab === t
-                ? "bg-[#f2f1ed] text-[#141413]"
-                : "text-[#5e5e5c] hover:text-[#a3a29f]"
-            }`}
-          >
-            {t === "ai" ? (
-              <>
-                <Sparkles size={13} />
-                Quick log
-              </>
-            ) : (
-              <>
-                <List size={13} />
-                Manual
-              </>
-            )}
-          </button>
-        ))}
+      <div>
+        <h1 className="font-heading text-2xl font-semibold tracking-tight text-[#f2f1ed]">
+          Log sessions
+        </h1>
+        <p className="mt-1 text-sm text-[#a3a29f] text-pretty">
+          Pick clients and date. For quick logging, use the chat on your dashboard.
+        </p>
       </div>
 
-      {/* AI tab */}
-      {tab === "ai" && (
-        <div className="space-y-4">
-          <div>
-            <p className="mb-2 text-sm text-[#a3a29f]">
-              Type who you trained today — naturally.
-            </p>
-            <textarea
-              value={aiText}
-              onChange={(e) => setAiText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleAIParse();
-              }}
-              placeholder="e.g. trained Marcus, Yemi and John this morning"
-              rows={3}
-              className={`${inputClass} resize-none`}
-            />
-            <p className="mt-1 text-right font-mono text-xs text-[#5e5e5c]">
-              ⌘↵ to parse
-            </p>
-          </div>
-          <button
-            onClick={handleAIParse}
-            disabled={parsing || !aiText.trim()}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#f2f1ed] py-2.5 text-sm font-semibold text-[#141413] hover:bg-white disabled:opacity-50 transition-colors"
-          >
-            {parsing ? (
-              <Loader2 size={14} className="animate-spin" />
-            ) : (
-              <Sparkles size={14} />
-            )}
-            {parsing ? "Parsing…" : "Parse names"}
-          </button>
+      {/* Date */}
+      <div>
+        <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
+          Date
+        </label>
+        <input
+          type="date"
+          value={manualDate}
+          onChange={(e) => setManualDate(e.target.value)}
+          className={inputClass}
+        />
+      </div>
 
-          <p className="text-center text-xs text-[#5e5e5c]">
-            Can&apos;t parse?{" "}
-            <button
-              onClick={() => setTab("manual")}
-              className="text-[#a3a29f] underline underline-offset-2"
-            >
-              Switch to manual
-            </button>
-          </p>
-        </div>
-      )}
-
-      {/* Manual tab */}
-      {tab === "manual" && (
-        <div className="space-y-4">
-          {/* Date */}
-          <div>
-            <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
-              Date
-            </label>
-            <input
-              type="date"
-              value={manualDate}
-              onChange={(e) => setManualDate(e.target.value)}
-              className={inputClass}
-            />
-          </div>
-
-          {/* Client checkboxes */}
-          <div>
-            <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
-              Clients ({selectedIds.size} selected)
-            </label>
-            {clients.length === 0 ? (
-              <p className="text-sm text-[#5e5e5c]">No clients yet.</p>
-            ) : (
-              <div className="divide-y divide-[#3d3d3c] rounded-xl border border-[#3d3d3c] bg-[#1e1e1d]">
-                {clients.map((client) => {
-                  const selected = selectedIds.has(client.id);
-                  return (
-                    <button
-                      key={client.id}
-                      onClick={() => toggleClient(client.id)}
-                      className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors first:rounded-t-xl last:rounded-b-xl ${
-                        selected ? "bg-[#262625]" : "hover:bg-[#1a1a19]"
-                      }`}
-                    >
-                      <div
-                        className={`flex size-5 shrink-0 items-center justify-center rounded border transition-colors ${
-                          selected
-                            ? "border-[#f2f1ed] bg-[#f2f1ed]"
-                            : "border-[#3d3d3c]"
-                        }`}
-                      >
-                        {selected && (
-                          <Check size={11} className="text-[#141413]" />
-                        )}
-                      </div>
-                      <p className="flex-1 text-sm text-[#f2f1ed]">
-                        {client.name}
-                      </p>
-                      <span
-                        className={`font-mono text-xs ${sessionBadgeClass(client.sessionsRemaining)}`}
-                      >
-                        {client.sessionsRemaining}
-                      </span>
-                    </button>
-                  );
-                })}
+      {/* Client checkboxes */}
+      <div>
+        <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
+          Clients ({selectedIds.size} selected)
+        </label>
+        {clients.length === 0 ? (
+          <p className="text-sm text-[#5e5e5c]">No clients yet.</p>
+        ) : (
+          <div className="divide-y divide-[#3d3d3c] rounded-xl border border-[#3d3d3c] bg-[#1e1e1d]">
+            {clients.length > 8 && (
+              <div className="px-4 py-2.5">
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search clients…"
+                  className="w-full bg-transparent text-sm text-[#f2f1ed] placeholder-[#5e5e5c] focus:outline-none"
+                />
               </div>
             )}
+            {clients
+              .filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
+              .map((client) => {
+              const selected = selectedIds.has(client.id);
+              return (
+                <button
+                  key={client.id}
+                  onClick={() => toggleClient(client.id)}
+                  className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors first:rounded-t-xl last:rounded-b-xl ${
+                    selected ? "bg-[#262625]" : "hover:bg-[#1a1a19]"
+                  }`}
+                >
+                  <div
+                    className={`flex size-5 shrink-0 items-center justify-center rounded border transition-[background-color,border-color,transform] duration-150 ${
+                      selected
+                        ? "border-[#f2f1ed] bg-[#f2f1ed] scale-110"
+                        : "border-[#3d3d3c] scale-100"
+                    }`}
+                  >
+                    {selected && (
+                      <Check size={11} className="text-[#141413]" />
+                    )}
+                  </div>
+                  <p className="flex-1 text-sm text-[#f2f1ed]">
+                    {client.name}
+                  </p>
+                  <span
+                    className={`font-mono text-xs ${sessionBadgeClass(client.sessionsRemaining)}`}
+                  >
+                    {client.sessionsRemaining}
+                  </span>
+                </button>
+              );
+            })}
           </div>
+        )}
+      </div>
 
-          {/* Notes */}
-          <div>
-            <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
-              Notes{" "}
-              <span className="normal-case text-[#5e5e5c]">(optional)</span>
-            </label>
-            <input
-              type="text"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g. Focus on legs today"
-              className={inputClass}
-            />
-          </div>
+      {/* Notes */}
+      <div>
+        <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
+          Notes{" "}
+          <span className="normal-case text-[#5e5e5c]">(optional)</span>
+        </label>
+        <input
+          type="text"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="e.g. Focus on legs today"
+          maxLength={200}
+          className={inputClass}
+        />
+      </div>
 
-          <button
-            onClick={handleManualContinue}
-            disabled={selectedIds.size === 0}
-            className="w-full rounded-lg bg-[#f2f1ed] py-2.5 text-sm font-semibold text-[#141413] hover:bg-white disabled:opacity-40 transition-colors"
-          >
-            Review →
-          </button>
-        </div>
-      )}
+      <button
+        onClick={handleManualContinue}
+        disabled={selectedIds.size === 0}
+        className="w-full rounded-lg bg-[#f2f1ed] py-2.5 text-sm font-semibold text-[#141413] hover:bg-white disabled:opacity-40 transition-colors"
+      >
+        Review →
+      </button>
 
       {/* Offline warning banner */}
       <OfflineBanner />

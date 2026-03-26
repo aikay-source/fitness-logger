@@ -408,9 +408,13 @@ export async function POST(req: Request) {
   }
 
   // ── Unknown / general intent — respond conversationally ─────────────────────
-  const answer = await generateReply(
-    `Available clients: ${roster.map((r) => r.name).join(", ") || "none yet"}.\nThe user's message doesn't map to a specific data query. Respond conversationally.`,
-    today, history, message,
-  );
-  return NextResponse.json<ChatResponse>({ type: "query_result", answer });
+  try {
+    const answer = await generateReply(
+      `Available clients: ${roster.map((r) => r.name).join(", ") || "none yet"}.\nThe user's message doesn't map to a specific data query. Respond conversationally.`,
+      today, history, message,
+    );
+    return NextResponse.json<ChatResponse>({ type: "query_result", answer });
+  } catch {
+    return NextResponse.json<ChatResponse>({ type: "error", message: "AI unavailable. Please try again." });
+  }
 }

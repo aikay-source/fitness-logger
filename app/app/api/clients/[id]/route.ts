@@ -11,7 +11,21 @@ export async function PATCH(
   if (!session) return new NextResponse("Unauthorized", { status: 401 });
 
   const { id } = await params;
-  const body = await req.json();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let body: any;
+  try {
+    body = await req.json();
+  } catch {
+    return new NextResponse("Invalid JSON", { status: 400 });
+  }
+
+  // Validate name if provided
+  if (body.name !== undefined) {
+    if (typeof body.name !== "string" || !body.name.trim()) {
+      return new NextResponse("Name must be a non-empty string", { status: 400 });
+    }
+    body.name = body.name.trim().slice(0, 100);
+  }
 
   // Verify ownership
   const existing = await prisma.client.findFirst({
@@ -22,20 +36,17 @@ export async function PATCH(
   const updated = await prisma.client.update({
     where: { id },
     data: {
-      ...(body.name !== undefined && { name: body.name }),
-      ...(body.phone !== undefined && { phone: body.phone || null }),
+      ...(body.name !== undefined && { name: String(body.name) }),
+      ...(body.phone !== undefined && { phone: body.phone ? String(body.phone) : null }),
       ...(body.totalSessionsPurchased !== undefined && {
-        totalSessionsPurchased: Math.max(
-          0,
-          Number(body.totalSessionsPurchased)
-        ),
+        totalSessionsPurchased: Math.max(0, Math.min(9999, Number(body.totalSessionsPurchased) || 0)),
       }),
       ...(body.sessionsRemaining !== undefined && {
-        sessionsRemaining: Math.max(0, Number(body.sessionsRemaining)),
+        sessionsRemaining: Math.max(0, Math.min(9999, Number(body.sessionsRemaining) || 0)),
       }),
-      ...(body.active !== undefined && { active: body.active }),
+      ...(body.active !== undefined && { active: Boolean(body.active) }),
       ...(body.unpaidSessions !== undefined && {
-        unpaidSessions: Math.max(0, Number(body.unpaidSessions)),
+        unpaidSessions: Math.max(0, Math.min(9999, Number(body.unpaidSessions) || 0)),
       }),
     },
   });

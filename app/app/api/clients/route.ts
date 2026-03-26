@@ -14,11 +14,13 @@ export async function POST(req: Request) {
     return new NextResponse("Name is required", { status: 400 });
   }
 
+  const trimmedName = name.trim().slice(0, 100);
+
   const remaining = Math.max(0, Number(sessionsRemaining) || 0);
 
   const client = await prisma.client.create({
     data: {
-      name: name.trim(),
+      name: trimmedName,
       phone: phone?.trim() || null,
       totalSessionsPurchased: Math.max(0, Number(totalSessionsPurchased) || 0),
       sessionsRemaining: remaining,

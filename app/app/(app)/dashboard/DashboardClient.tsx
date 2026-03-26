@@ -1,20 +1,34 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Send, Loader2, CheckCircle2, AlertTriangle, MessageCircle } from "lucide-react";
+import confetti from "canvas-confetti";
 import type { ChatResponse } from "@/app/api/ai/chat/route";
 
 type Message =
   | { role: "user"; text: string }
   | { role: "assistant"; response: ChatResponse };
 
-const SUGGESTIONS = [
-  "Trained Kate today",
-  "How many sessions did Kate have in March?",
-  "Kate and Tom session today",
-];
+function buildSuggestions(names: string[]): string[] {
+  if (names.length === 0) {
+    return [
+      "Trained John today",
+      "How many sessions this month?",
+      "Log a session for Sarah",
+    ];
+  }
+  const a = names[0];
+  const b = names.length > 1 ? names[1] : null;
+  return [
+    `Trained ${a} today`,
+    `How many sessions did ${a} have this month?`,
+    b ? `${a} and ${b} session today` : `Log a session for ${a}`,
+  ];
+}
 
-export default function DashboardClient() {
+export default function DashboardClient({ clientNames = [] }: { clientNames?: string[] }) {
+  const suggestions = buildSuggestions(clientNames);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -81,44 +95,61 @@ export default function DashboardClient() {
         Quick log
       </h2>
 
-      <div className="rounded-xl bg-[#1e1e1d] shadow-[0_0_0_1px_rgba(61,61,60,0.5),0_2px_4px_rgba(0,0,0,0.2),0_4px_12px_rgba(0,0,0,0.15)] overflow-hidden">
+      <div className="rounded-xl border border-[#3d3d3c] bg-[#1e1e1d] overflow-hidden">
         {/* Message history */}
         {messages.length > 0 && (
           <div ref={chatContainerRef} className="max-h-72 overflow-y-auto px-4 py-3 space-y-3">
-            {messages.map((msg, i) => (
-              <div key={i}>
-                {msg.role === "user" ? (
-                  <div className="flex justify-end">
-                    <p className="max-w-[80%] rounded-lg rounded-br-sm bg-[#f2f1ed] px-3 py-2 text-sm text-[#141413]">
-                      {msg.text}
-                    </p>
-                  </div>
-                ) : (
-                  <AssistantBubble response={msg.response} />
-                )}
-              </div>
-            ))}
-            {loading && (
-              <div className="flex items-center gap-2 text-[#5e5e5c]">
-                <Loader2 size={13} className="animate-spin" />
-                <span className="text-xs">Thinking…</span>
-              </div>
-            )}
+            <AnimatePresence initial={false}>
+              {messages.map((msg, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, ease: [0.2, 0, 0, 1] }}
+                >
+                  {msg.role === "user" ? (
+                    <div className="flex justify-end">
+                      <p className="max-w-[80%] rounded-lg rounded-br-sm bg-[#f2f1ed] px-3 py-2 text-sm text-[#141413]">
+                        {msg.text}
+                      </p>
+                    </div>
+                  ) : (
+                    <AssistantBubble response={msg.response} />
+                  )}
+                </motion.div>
+              ))}
+              {loading && (
+                <motion.div
+                  key="loading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex items-center gap-2 text-[#5e5e5c]"
+                >
+                  <Loader2 size={13} className="animate-spin" />
+                  <span className="text-xs">Thinking…</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
 
-        {/* Suggestions — shown only when no messages */}
+        {/* Suggestions + capability hint — shown only when no messages */}
         {messages.length === 0 && (
-          <div className="px-4 pt-3 pb-2 flex flex-wrap gap-2">
-            {SUGGESTIONS.map((s) => (
-              <button
-                key={s}
-                onClick={() => send(s)}
-                className="rounded-full border border-[#3d3d3c] px-3 py-2.5 font-mono text-xs text-[#5e5e5c] hover:border-[#5e5e5c] hover:text-[#a3a29f] active:scale-[0.96] transition-[border-color,color,transform]"
-              >
-                {s}
-              </button>
-            ))}
+          <div className="px-4 pt-3 pb-2 space-y-2">
+            <div className="flex flex-wrap gap-2">
+              {suggestions.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => send(s)}
+                  className="rounded-full border border-[#3d3d3c] px-3 py-2.5 font-mono text-xs text-[#5e5e5c] hover:border-[#5e5e5c] hover:text-[#a3a29f] active:scale-[0.96] transition-[border-color,color,transform]"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-[#5e5e5c] text-pretty">
+              Log sessions, ask about client history, or check stats.
+            </p>
           </div>
         )}
 
@@ -131,7 +162,8 @@ export default function DashboardClient() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKey}
-            placeholder="Log a session or ask about history…"
+            placeholder="Trained anyone today?"
+            maxLength={200}
             disabled={loading}
             className="flex-1 bg-transparent text-sm text-[#f2f1ed] placeholder-[#5e5e5c] focus:outline-none disabled:opacity-50"
           />
@@ -149,6 +181,18 @@ export default function DashboardClient() {
 }
 
 function AssistantBubble({ response }: { response: ChatResponse }) {
+  useEffect(() => {
+    if (response.type === "logged") {
+      confetti({
+        particleCount: 40,
+        spread: 50,
+        origin: { y: 0.6 },
+        colors: ["#f2f1ed", "#a3a29f", "#3d3d3c"],
+        disableForReducedMotion: true,
+      });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   if (response.type === "logged") {
     return (
       <div className="space-y-1.5">

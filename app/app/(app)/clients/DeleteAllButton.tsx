@@ -28,7 +28,7 @@ export default function DeleteAllButton({ count }: { count: number }) {
       setOpen(false);
       router.refresh();
     } catch {
-      toast.error("Failed to delete clients.");
+      toast.error("Couldn't delete clients. Try again.");
       setDeleting(false);
     }
   }
@@ -52,7 +52,7 @@ export default function DeleteAllButton({ count }: { count: number }) {
             <DialogTitle className="text-[#f2f1ed]">
               Delete all {count} client{count !== 1 ? "s" : ""}?
             </DialogTitle>
-            <DialogDescription className="text-[#a3a29f]">
+            <DialogDescription className="text-[#a3a29f] text-pretty">
               This will permanently remove all{" "}
               <span className="font-medium text-[#f2f1ed]">{count} client{count !== 1 ? "s" : ""}</span>{" "}
               and their session history. This action cannot be undone.

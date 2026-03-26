@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, Clock, Check, ChevronRight } from "lucide-react";
+import { Bell, Clock, Check, ChevronRight, Users } from "lucide-react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { saveReminderSettings } from "@/app/actions/settings";
 import { toast } from "sonner";
 
-type Step = 1 | 2;
+type Step = 1 | 2 | 3;
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -32,15 +32,15 @@ export default function OnboardingPage() {
     const ok = await subscribe();
     if (ok) {
       toast.success("Notifications enabled!");
-      router.push("/dashboard");
+      setStep(3);
     } else {
       toast.error("Permission denied — you can enable this later in Settings.");
     }
   }
 
-  function handleSkip() {
+  function handleSkipStep1() {
     saveReminderSettings(null, false).catch(() => null);
-    router.push("/dashboard");
+    setStep(2);
   }
 
   const inputClass =
@@ -51,7 +51,7 @@ export default function OnboardingPage() {
       <div className="w-full max-w-sm space-y-8">
         {/* Progress dots */}
         <div className="flex justify-center gap-2">
-          {([1, 2] as Step[]).map((s) => (
+          {([1, 2, 3] as Step[]).map((s) => (
             <div
               key={s}
               className={`h-1.5 w-6 rounded-full transition-colors ${
@@ -68,7 +68,7 @@ export default function OnboardingPage() {
               <div className="flex size-10 items-center justify-center rounded-xl bg-[#1e1e1d]">
                 <Clock size={18} className="text-[#a3a29f]" />
               </div>
-              <h1 className="mt-3 text-2xl font-semibold tracking-tight text-[#f2f1ed]">
+              <h1 className="mt-3 font-heading text-2xl font-semibold tracking-tight text-[#f2f1ed]">
                 When do you finish training?
               </h1>
               <p className="text-sm text-[#a3a29f]">
@@ -98,7 +98,7 @@ export default function OnboardingPage() {
                 {!saving && <ChevronRight size={14} />}
               </button>
               <button
-                onClick={handleSkip}
+                onClick={handleSkipStep1}
                 className="w-full text-center text-sm text-[#5e5e5c] hover:text-[#a3a29f] transition-colors"
               >
                 Skip for now
@@ -114,7 +114,7 @@ export default function OnboardingPage() {
               <div className="flex size-10 items-center justify-center rounded-xl bg-[#1e1e1d]">
                 <Bell size={18} className="text-[#a3a29f]" />
               </div>
-              <h1 className="mt-3 text-2xl font-semibold tracking-tight text-[#f2f1ed]">
+              <h1 className="mt-3 font-heading text-2xl font-semibold tracking-tight text-[#f2f1ed]">
                 Stay on top of your clients
               </h1>
               <p className="text-sm text-[#a3a29f]">
@@ -157,19 +157,52 @@ export default function OnboardingPage() {
 
               {pushState === "granted" && (
                 <button
-                  onClick={() => router.push("/dashboard")}
+                  onClick={() => setStep(3)}
                   className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#f2f1ed] py-2.5 text-sm font-semibold text-[#141413] hover:bg-white transition-colors"
                 >
-                  <Check size={14} />
-                  Go to dashboard
+                  <ChevronRight size={14} />
+                  Next
                 </button>
               )}
 
               <button
-                onClick={() => router.push("/dashboard")}
+                onClick={() => setStep(3)}
                 className="w-full text-center text-sm text-[#5e5e5c] hover:text-[#a3a29f] transition-colors"
               >
                 Skip for now
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Add clients */}
+        {step === 3 && (
+          <div className="space-y-6">
+            <div className="space-y-1">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-[#1e1e1d]">
+                <Users size={18} className="text-[#a3a29f]" />
+              </div>
+              <h1 className="mt-3 font-heading text-2xl font-semibold tracking-tight text-[#f2f1ed]">
+                Add your clients
+              </h1>
+              <p className="text-sm text-[#a3a29f] text-pretty">
+                Add them one by one, or import a spreadsheet if you have an existing roster.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => router.push("/clients")}
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#f2f1ed] py-2.5 text-sm font-semibold text-[#141413] hover:bg-white transition-colors"
+              >
+                <Users size={14} />
+                Add clients
+              </button>
+              <button
+                onClick={() => router.push("/dashboard")}
+                className="w-full text-center text-sm text-[#5e5e5c] hover:text-[#a3a29f] transition-colors"
+              >
+                I&apos;ll do this later
               </button>
             </div>
           </div>

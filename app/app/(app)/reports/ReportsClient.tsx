@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Download, ChevronLeft, ChevronRight, Sparkles, Loader2 } from "lucide-react";
 import { exportToCSV } from "@/lib/export-csv";
+import { useCountUp } from "@/hooks/useCountUp";
 
 type SessionRow = {
   id: string;
@@ -42,20 +43,23 @@ export default function ReportsClient({
   const [summary, setSummary] = useState<string | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
 
-  const fetchReport = useCallback(async () => {
+  useEffect(() => {
+    const controller = new AbortController();
     setLoading(true);
     setSummary(null);
-    try {
-      const res = await fetch(`/api/reports/monthly?year=${year}&month=${month}`);
-      if (res.ok) setData(await res.json());
-    } finally {
-      setLoading(false);
-    }
+    fetch(`/api/reports/monthly?year=${year}&month=${month}`, { signal: controller.signal })
+      .then(async (res) => {
+        if (res.ok) setData(await res.json());
+      })
+      .catch((err) => {
+        if (err.name !== "AbortError") console.error(err);
+      })
+      .finally(() => setLoading(false));
+    return () => controller.abort();
   }, [year, month]);
 
-  useEffect(() => {
-    fetchReport();
-  }, [fetchReport]);
+  const animatedSessions = useCountUp(data?.stats.totalSessions ?? 0);
+  const animatedClients = useCountUp(data?.stats.uniqueClients ?? 0);
 
   function navigate(delta: number) {
     const d = new Date(year, month - 1 + delta, 1);
@@ -102,7 +106,7 @@ export default function ReportsClient({
         <p className="font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
           Monthly
         </p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[#f2f1ed]">
+        <h1 className="mt-1 font-heading text-2xl font-semibold tracking-tight text-[#f2f1ed]">
           Reports
         </h1>
       </div>
@@ -138,14 +142,14 @@ export default function ReportsClient({
           {/* Stats */}
           <div className="grid grid-cols-2 gap-3">
             <div className={statCardClass}>
-              <p className="font-mono text-3xl font-semibold text-[#f2f1ed]">
-                {data.stats.totalSessions}
+              <p className="font-mono text-3xl font-semibold tabular-nums text-[#f2f1ed]">
+                {animatedSessions}
               </p>
               <p className="mt-0.5 text-xs text-[#a3a29f]">sessions logged</p>
             </div>
             <div className={statCardClass}>
-              <p className="font-mono text-3xl font-semibold text-[#f2f1ed]">
-                {data.stats.uniqueClients}
+              <p className="font-mono text-3xl font-semibold tabular-nums text-[#f2f1ed]">
+                {animatedClients}
               </p>
               <p className="mt-0.5 text-xs text-[#a3a29f]">unique clients</p>
             </div>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import ClientDetailClient from "./ClientDetailClient";
+import DeleteClientButton from "./DeleteClientButton";
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -61,24 +62,25 @@ export default async function ClientDetailPage({
       <div>
         <Link
           href="/clients"
-          className="mb-4 inline-flex items-center gap-1 font-mono text-xs text-[#5e5e5c] hover:text-[#a3a29f] transition-colors"
+          className="relative mb-4 inline-flex items-center gap-1 font-mono text-xs text-[#5e5e5c] hover:text-[#a3a29f] active:scale-[0.96] transition-[color,transform] before:absolute before:inset-[-8px] before:content-['']"
         >
           <ChevronLeft size={13} />
           Clients
         </Link>
 
         <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0">
             <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#3d3d3c] font-mono text-sm font-semibold text-[#f2f1ed]">
               {client.name
                 .split(" ")
+                .filter(Boolean)
                 .map((n) => n[0])
                 .join("")
                 .slice(0, 2)
-                .toUpperCase()}
+                .toUpperCase() || "?"}
             </div>
-            <div>
-              <h1 className="text-xl font-semibold tracking-tight text-[#f2f1ed]">
+            <div className="min-w-0">
+              <h1 className="font-heading text-xl font-semibold tracking-tight text-[#f2f1ed] truncate">
                 {client.name}
               </h1>
               {client.phone && (
@@ -177,8 +179,14 @@ export default async function ClientDetailPage({
         </div>
 
         {monthGroups.length === 0 ? (
-          <div className="rounded-xl border border-[#3d3d3c] bg-[#1e1e1d] p-6 text-center">
+          <div className="rounded-xl border border-[#3d3d3c] bg-[#1e1e1d] p-6 text-center space-y-2">
             <p className="text-sm text-[#a3a29f]">No sessions logged yet.</p>
+            <Link
+              href="/dashboard"
+              className="inline-block font-mono text-xs text-[#5e5e5c] hover:text-[#a3a29f] transition-colors"
+            >
+              Log a session →
+            </Link>
           </div>
         ) : (
           <div className="space-y-3">
@@ -232,6 +240,9 @@ export default async function ClientDetailPage({
           </div>
         )}
       </section>
+
+      {/* Danger zone — last on page */}
+      <DeleteClientButton clientId={client.id} clientName={client.name} />
     </div>
   );
 }
