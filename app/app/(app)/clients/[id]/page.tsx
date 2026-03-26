@@ -25,7 +25,6 @@ export default async function ClientDetailPage({
     include: {
       sessions: {
         orderBy: { date: "desc" },
-        include: { packageEpisode: true },
       },
       packageEpisodes: {
         orderBy: { startDate: "asc" },
@@ -172,7 +171,7 @@ export default async function ClientDetailPage({
           </h2>
           {client.sessions.length > 0 && (
             <p className="font-mono text-xs text-[#5e5e5c]">
-              {client.sessions.length} total
+              {client.sessions.length} session{client.sessions.length !== 1 ? "s" : ""} across {monthGroups.length} month{monthGroups.length !== 1 ? "s" : ""}
             </p>
           )}
         </div>

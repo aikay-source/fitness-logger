@@ -16,6 +16,7 @@ model User {
   reminderEnabled   Boolean            @default(true)
   clients           Client[]
   sessions          Session[]
+  packageEpisodes   PackageEpisode[]
   pushSubscriptions PushSubscription[]
   accounts          Account[]
   createdAt         DateTime           @default(now())
@@ -48,30 +49,60 @@ model VerificationToken {
 }
 
 model Client {
-  id                     String    @id @default(cuid())
+  id                     String           @id @default(cuid())
   name                   String
   phone                  String?
-  totalSessionsPurchased Int       @default(0)
-  sessionsRemaining      Int       @default(0)
-  active                 Boolean   @default(true)
-  unpaidSessions         Int       @default(0)
+  totalSessionsPurchased Int              @default(0)
+  sessionsRemaining      Int              @default(0)
+  active                 Boolean          @default(true)
+  unpaidSessions         Int              @default(0)
+  lastSessionDate        DateTime?
   coachId                String
-  coach                  User      @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  coach                  User             @relation(fields: [coachId], references: [id], onDelete: Cascade)
   sessions               Session[]
-  createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @updatedAt
+  packageEpisodes        PackageEpisode[]
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+}
+
+// Tracks a purchased session package (e.g. client bought 11 sessions)
+model PackageEpisode {
+  id            String    @id @default(cuid())
+  clientId      String
+  client        Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  coachId       String
+  coach         User      @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  totalSessions Int
+  startDate     DateTime
+  endDate       DateTime?
+  status        String    @default("active") // "active" | "completed"
+  sessions      Session[]
+  createdAt     DateTime  @default(now())
 }
 
 model Session {
-  id        String   @id @default(cuid())
-  date      DateTime @default(now())
-  notes     String?
-  rawInput  String?
-  clientId  String
-  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  coachId   String
-  coach     User     @relation(fields: [coachId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  id               String          @id @default(cuid())
+  date             DateTime        @default(now())
+  // YYYY-MM-DD string used as the deduplication key on import.
+  // Null for manually-logged sessions (no dedup needed).
+  dateKey          String?
+  notes            String?
+  rawInput         String?
+  // Populated on import: position within a package and the package size
+  sessionNumber    Int?
+  packageSize      Int?
+  // false = unpaid / no package (X/u in the spreadsheet)
+  paid             Boolean         @default(true)
+  packageEpisodeId String?
+  packageEpisode   PackageEpisode? @relation(fields: [packageEpisodeId], references: [id])
+  clientId         String
+  client           Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  coachId          String
+  coach            User            @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  createdAt        DateTime        @default(now())
+
+  // One session per client per calendar day (import only — dateKey is null for manual sessions)
+  @@unique([clientId, dateKey])
 }
 
 model PushSubscription {
@@ -84,14 +115,14 @@ model PushSubscription {
 }
 
 model MonthlySummaryCache {
-  id        String   @id @default(cuid())
-  userId    String
-  year      Int
-  month     Int      // 1–12
-  summary   String   // AI-generated narrative
+  id           String   @id @default(cuid())
+  userId       String
+  year         Int
+  month        Int      // 1–12
+  summary      String   // AI-generated narrative
   sessionCount Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@unique([userId, year, month])
 }

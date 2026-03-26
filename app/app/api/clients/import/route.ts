@@ -23,7 +23,7 @@ export async function POST(req: Request) {
 
   const coachId = session.user.id;
 
-  await prisma.client.createMany({
+  const result = await prisma.client.createMany({
     data: clients
       .filter((c) => c.name?.trim())
       .map((c) => {
@@ -40,5 +40,5 @@ export async function POST(req: Request) {
       }),
   });
 
-  return NextResponse.json({ imported: clients.length });
+  return NextResponse.json({ imported: result.count });
 }

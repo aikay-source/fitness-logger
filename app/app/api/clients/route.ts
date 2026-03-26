@@ -7,19 +7,23 @@ export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session) return new NextResponse("Unauthorized", { status: 401 });
 
-  const { name, phone, totalSessionsPurchased, sessionsRemaining } =
+  const { name, phone, totalSessionsPurchased, sessionsRemaining, unpaidSessions, lastSessionDate } =
     await req.json();
 
   if (!name?.trim()) {
     return new NextResponse("Name is required", { status: 400 });
   }
 
+  const remaining = Math.max(0, Number(sessionsRemaining) || 0);
+
   const client = await prisma.client.create({
     data: {
       name: name.trim(),
       phone: phone?.trim() || null,
       totalSessionsPurchased: Math.max(0, Number(totalSessionsPurchased) || 0),
-      sessionsRemaining: Math.max(0, Number(sessionsRemaining) || 0),
+      sessionsRemaining: remaining,
+      unpaidSessions: remaining === 0 ? Math.max(0, Number(unpaidSessions) || 0) : 0,
+      lastSessionDate: lastSessionDate ? new Date(lastSessionDate) : null,
       coachId: session.user.id,
     },
   });

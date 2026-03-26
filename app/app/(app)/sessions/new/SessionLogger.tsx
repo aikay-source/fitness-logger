@@ -22,7 +22,7 @@ type ConfirmState = {
 function sessionBadgeClass(remaining: number) {
   if (remaining <= 2) return "text-red-400";
   if (remaining <= 5) return "text-amber-400";
-  return "text-emerald-400";
+  return "text-[#5e5e5c]";
 }
 
 function toastMessage(count: number, completed: string[], low: string[], unpaid: string[]): string {

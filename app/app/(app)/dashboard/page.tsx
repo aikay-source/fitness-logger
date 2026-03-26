@@ -2,7 +2,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { AlertTriangle, PlusCircle, DollarSign } from "lucide-react";
+import { AlertTriangle, DollarSign, Zap } from "lucide-react";
+import DashboardClient from "./DashboardClient";
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -99,23 +100,17 @@ export default async function DashboardPage() {
           </h1>
         </div>
         {streak >= 2 && (
-          <div className="flex items-center gap-1.5 rounded-lg border border-[#3d3d3c] bg-[#1e1e1d] px-3 py-1.5">
-            <span className="text-base">🔥</span>
-            <span className="font-mono text-xs font-semibold text-[#f2f1ed]">
-              {streak} days
+          <div className="flex items-center gap-1.5 rounded-lg border border-[#3d3d3c] bg-[#1e1e1d] px-2.5 py-1.5">
+            <Zap size={11} className="text-amber-400 fill-amber-400 shrink-0" />
+            <span className="font-mono text-xs font-semibold tabular-nums text-[#f2f1ed]">
+              {streak}d
             </span>
           </div>
         )}
       </div>
 
-      {/* Quick log CTA */}
-      <Link
-        href="/sessions/new"
-        className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#f2f1ed] py-2.5 text-sm font-semibold text-[#141413] hover:bg-white transition-colors"
-      >
-        <PlusCircle size={16} />
-        Log today&apos;s sessions
-      </Link>
+      {/* Chat: log sessions or query history */}
+      <DashboardClient />
 
       {/* Low session alerts */}
       {lowClients.length > 0 && (
@@ -128,21 +123,25 @@ export default async function DashboardPage() {
               <Link
                 key={client.id}
                 href={`/clients/${client.id}`}
-                className="flex items-center gap-3 rounded-xl border border-[#3d3d3c] bg-[#1e1e1d] p-4 transition-colors hover:border-[#5e5e5c]"
+                className={`flex items-center gap-3 rounded-xl border bg-[#1e1e1d] p-4 transition-colors hover:bg-[#262625] overflow-hidden ${
+                  client.sessionsRemaining <= 1
+                    ? "border-[#3d3d3c] border-l-2 border-l-red-500"
+                    : "border-[#3d3d3c] border-l-2 border-l-amber-500"
+                }`}
               >
                 <AlertTriangle
-                  size={16}
+                  size={15}
                   className={
                     client.sessionsRemaining <= 1
-                      ? "text-red-400"
-                      : "text-amber-400"
+                      ? "text-red-400 shrink-0"
+                      : "text-amber-400 shrink-0"
                   }
                 />
                 <div className="flex-1 min-w-0">
                   <p className="truncate text-sm font-medium text-[#f2f1ed]">
                     {client.name}
                   </p>
-                  <p className="text-xs text-[#a3a29f]">
+                  <p className={`text-xs ${client.sessionsRemaining <= 1 ? "text-red-400/60" : "text-amber-400/60"}`}>
                     {client.sessionsRemaining === 1
                       ? "1 session left"
                       : `${client.sessionsRemaining} sessions left`}
@@ -165,14 +164,14 @@ export default async function DashboardPage() {
               <Link
                 key={client.id}
                 href={`/clients/${client.id}`}
-                className="flex items-center gap-3 rounded-xl border border-purple-500/30 bg-purple-500/10 p-4 transition-colors hover:border-purple-500/50"
+                className="flex items-center gap-3 rounded-xl border border-[#3d3d3c] border-l-2 border-l-orange-500 bg-[#1e1e1d] p-4 transition-colors hover:bg-[#262625] overflow-hidden"
               >
-                <DollarSign size={16} className="text-purple-400 shrink-0" />
+                <DollarSign size={15} className="text-orange-400 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="truncate text-sm font-medium text-[#f2f1ed]">
                     {client.name}
                   </p>
-                  <p className="text-xs text-purple-300">
+                  <p className="text-xs text-orange-400/60">
                     {client.unpaidSessions} unpaid session{client.unpaidSessions !== 1 ? "s" : ""}
                   </p>
                 </div>
@@ -226,9 +225,12 @@ export default async function DashboardPage() {
             {recentSessions.map((s) => (
               <div
                 key={s.id}
-                className="flex items-center justify-between px-4 py-3"
+                className="flex items-center gap-3 px-4 py-3"
               >
-                <p className="text-sm text-[#f2f1ed]">{s.client.name}</p>
+                <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#3d3d3c] font-mono text-[10px] font-semibold text-[#a3a29f]">
+                  {s.client.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+                </div>
+                <p className="flex-1 text-sm text-[#f2f1ed]">{s.client.name}</p>
                 <p className="font-mono text-xs text-[#5e5e5c]">
                   {new Date(s.date).toLocaleDateString("en-GB", {
                     day: "numeric",

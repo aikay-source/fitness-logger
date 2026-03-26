@@ -144,6 +144,13 @@ export async function POST(req: Request) {
   // ── 4. Persist episodes (delete old ones for affected clients, recreate) ───
   const affectedClientIds = [...byClient.keys()];
 
+  // Null out packageEpisodeId on existing sessions first to avoid FK constraint
+  // violation when we delete the old PackageEpisode rows below.
+  await prisma.session.updateMany({
+    where: { clientId: { in: affectedClientIds }, coachId },
+    data: { packageEpisodeId: null },
+  });
+
   await prisma.packageEpisode.deleteMany({
     where: { clientId: { in: affectedClientIds }, coachId },
   });
@@ -186,7 +193,8 @@ export async function POST(req: Request) {
           ? episodeIdLookup.get(`${clientId}:${localEpisodeIdx}`) ?? null
           : null;
 
-      const sessionDate = new Date(entry.date);
+      // Parse as noon UTC so the calendar date is stable in any timezone
+      const sessionDate = new Date(entry.date + "T12:00:00.000Z");
 
       await prisma.session.upsert({
         where: {
