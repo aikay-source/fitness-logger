@@ -16,7 +16,7 @@ type ClientItem = {
 function sessionBadgeClass(remaining: number) {
   if (remaining <= 2) return "bg-red-500/15 text-red-400";
   if (remaining <= 5) return "bg-amber-500/15 text-amber-400";
-  return "bg-[#2a2a29] text-[#a3a29f]";
+  return "bg-[var(--app-elevated)] text-[var(--app-tertiary)]";
 }
 
 function initials(name: string) {
@@ -42,7 +42,7 @@ export default function ClientListFilter({ clients }: { clients: ClientItem[] })
       variants={staggerContainer}
       initial="hidden"
       animate="show"
-      className="divide-y divide-[#3d3d3c] rounded-xl border border-[#3d3d3c] bg-[#1e1e1d]"
+      className="divide-y divide-[var(--app-border)] rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)]"
     >
       {clients.length > 8 && (
         <div className="px-4 py-2.5">
@@ -51,7 +51,8 @@ export default function ClientListFilter({ clients }: { clients: ClientItem[] })
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search clients…"
-            className="w-full bg-transparent text-sm text-[#f2f1ed] placeholder-[#5e5e5c] focus:outline-none"
+            aria-label="Filter clients by name"
+            className="w-full bg-transparent text-sm text-[var(--app-text)] placeholder-[var(--app-muted)] focus:outline-none"
           />
         </div>
       )}
@@ -59,17 +60,17 @@ export default function ClientListFilter({ clients }: { clients: ClientItem[] })
         <motion.div key={client.id} variants={staggerItem}>
         <Link
           href={`/clients/${client.id}`}
-          className="flex items-center gap-3 px-4 py-3 hover:bg-[#262625] active:scale-[0.98] transition-[background-color,transform] first:rounded-t-xl last:rounded-b-xl"
+          className="flex items-center gap-3 px-4 py-3 hover:bg-[var(--app-elevated)] active:scale-[0.98] transition-[background-color,transform] first:rounded-t-xl last:rounded-b-xl"
         >
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#3d3d3c] font-mono text-xs font-semibold text-[#f2f1ed]">
+          <div aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[var(--app-border)] font-mono text-xs font-semibold text-[var(--app-text)]">
             {initials(client.name)}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-[#f2f1ed]">
+            <p className="truncate text-sm font-medium text-[var(--app-text)]">
               {client.name}
             </p>
             {client.phone && (
-              <p className="truncate font-mono text-xs text-[#5e5e5c]">
+              <p className="truncate font-mono text-xs text-[var(--app-muted)]">
                 {client.phone}
               </p>
             )}
@@ -91,7 +92,7 @@ export default function ClientListFilter({ clients }: { clients: ClientItem[] })
       ))}
       {search && filtered.length === 0 && (
         <div className="px-4 py-6 text-center">
-          <p className="text-sm text-[#5e5e5c]">No clients match &ldquo;{search}&rdquo;</p>
+          <p className="text-sm text-[var(--app-muted)]">No clients match &ldquo;{search}&rdquo;</p>
         </div>
       )}
     </motion.div>

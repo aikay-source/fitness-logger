@@ -57,12 +57,12 @@ export default async function ClientDetailPage({
   );
 
   return (
-    <div className="mx-auto max-w-lg px-4 pt-8 space-y-6">
+    <main id="main-content" className="mx-auto max-w-lg px-4 pt-8 space-y-6">
       {/* Back */}
       <div>
         <Link
           href="/clients"
-          className="relative mb-4 inline-flex items-center gap-1 font-mono text-xs text-[#5e5e5c] hover:text-[#a3a29f] active:scale-[0.96] transition-[color,transform] before:absolute before:inset-[-8px] before:content-['']"
+          className="relative mb-4 inline-flex items-center gap-1 font-mono text-xs text-[var(--app-muted)] hover:text-[var(--app-tertiary)] active:scale-[0.96] transition-[color,transform] before:absolute before:inset-[-8px] before:content-['']"
         >
           <ChevronLeft size={13} />
           Clients
@@ -70,7 +70,7 @@ export default async function ClientDetailPage({
 
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#3d3d3c] font-mono text-sm font-semibold text-[#f2f1ed]">
+            <div aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[var(--app-border)] font-mono text-sm font-semibold text-[var(--app-text)]">
               {client.name
                 .split(" ")
                 .filter(Boolean)
@@ -80,11 +80,11 @@ export default async function ClientDetailPage({
                 .toUpperCase() || "?"}
             </div>
             <div className="min-w-0">
-              <h1 className="font-heading text-xl font-semibold tracking-tight text-[#f2f1ed] truncate">
+              <h1 className="font-heading text-xl font-semibold tracking-tight text-[var(--app-text)] truncate">
                 {client.name}
               </h1>
               {client.phone && (
-                <p className="font-mono text-xs text-[#5e5e5c]">{client.phone}</p>
+                <p className="font-mono text-xs text-[var(--app-muted)]">{client.phone}</p>
               )}
             </div>
           </div>
@@ -94,10 +94,10 @@ export default async function ClientDetailPage({
       {/* Package episodes track */}
       {client.packageEpisodes.length > 0 && (
         <section className="space-y-2">
-          <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
+          <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
             Package history
           </h2>
-          <div className="divide-y divide-[#3d3d3c] rounded-xl border border-[#3d3d3c] bg-[#1e1e1d]">
+          <div className="divide-y divide-[var(--app-border)] rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)]">
             {client.packageEpisodes.map((ep) => {
               const used = client.sessions.filter(
                 (s) => s.packageEpisodeId === ep.id
@@ -107,10 +107,10 @@ export default async function ClientDetailPage({
                 <div key={ep.id} className="px-4 py-3 space-y-2">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[#f2f1ed]">
+                      <p className="text-sm text-[var(--app-text)]">
                         {ep.totalSessions}-session package
                       </p>
-                      <p className="font-mono text-xs text-[#5e5e5c]">
+                      <p className="font-mono text-xs text-[var(--app-muted)]">
                         Started{" "}
                         {new Date(ep.startDate).toLocaleDateString("en-GB", {
                           day: "numeric",
@@ -133,16 +133,16 @@ export default async function ClientDetailPage({
                       className={`font-mono text-xs font-semibold ${
                         ep.status === "completed"
                           ? "text-emerald-400"
-                          : "text-[#a3a29f]"
+                          : "text-[var(--app-tertiary)]"
                       }`}
                     >
                       {ep.status === "completed" ? "Completed" : `${used}/${ep.totalSessions}`}
                     </span>
                   </div>
-                  <div className="h-1 w-full overflow-hidden rounded-full bg-[#3d3d3c]">
+                  <div className="h-1 w-full overflow-hidden rounded-full bg-[var(--app-border)]">
                     <div
                       className={`h-full rounded-full transition-all ${
-                        ep.status === "completed" ? "bg-emerald-400" : "bg-[#f2f1ed]"
+                        ep.status === "completed" ? "bg-emerald-400" : "bg-[var(--app-text)]"
                       }`}
                       style={{ width: `${pct}%` }}
                     />
@@ -168,22 +168,22 @@ export default async function ClientDetailPage({
       {/* Session history — grouped by month */}
       <section className="space-y-2">
         <div className="flex items-center justify-between">
-          <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
+          <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
             Session history
           </h2>
           {client.sessions.length > 0 && (
-            <p className="font-mono text-xs text-[#5e5e5c]">
+            <p className="font-mono text-xs text-[var(--app-muted)]">
               {client.sessions.length} session{client.sessions.length !== 1 ? "s" : ""} across {monthGroups.length} month{monthGroups.length !== 1 ? "s" : ""}
             </p>
           )}
         </div>
 
         {monthGroups.length === 0 ? (
-          <div className="rounded-xl border border-[#3d3d3c] bg-[#1e1e1d] p-6 text-center space-y-2">
-            <p className="text-sm text-[#a3a29f]">No sessions logged yet.</p>
+          <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-6 text-center space-y-2">
+            <p className="text-sm text-[var(--app-tertiary)]">No sessions logged yet.</p>
             <Link
               href="/dashboard"
-              className="inline-block font-mono text-xs text-[#5e5e5c] hover:text-[#a3a29f] transition-colors"
+              className="inline-block font-mono text-xs text-[var(--app-muted)] hover:text-[var(--app-tertiary)] transition-colors"
             >
               Log a session →
             </Link>
@@ -192,21 +192,21 @@ export default async function ClientDetailPage({
           <div className="space-y-3">
             {monthGroups.map((group) => (
               <details key={`${group.year}-${group.month}`} className="group" open={group === monthGroups[0]}>
-                <summary className="flex cursor-pointer items-center justify-between rounded-xl border border-[#3d3d3c] bg-[#1e1e1d] px-4 py-3 hover:border-[#5e5e5c] transition-colors list-none">
-                  <p className="text-sm font-semibold text-[#f2f1ed]">
+                <summary className="flex cursor-pointer items-center justify-between rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-3 hover:border-[var(--app-muted)] transition-colors list-none">
+                  <p className="text-sm font-semibold text-[var(--app-text)]">
                     {MONTH_NAMES[group.month]} {group.year}
                   </p>
-                  <span className="font-mono text-xs text-[#5e5e5c]">
+                  <span className="font-mono text-xs text-[var(--app-muted)]">
                     {group.sessions.length} session{group.sessions.length !== 1 ? "s" : ""}
                   </span>
                 </summary>
 
-                <div className="mt-1 divide-y divide-[#3d3d3c] rounded-xl border border-[#3d3d3c] bg-[#1e1e1d]">
+                <div className="mt-1 divide-y divide-[var(--app-border)] rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)]">
                   {group.sessions.map((s) => (
                     <div key={s.id} className="flex items-center gap-3 px-4 py-3">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
-                          <p className="text-sm text-[#f2f1ed]">
+                          <p className="text-sm text-[var(--app-text)]">
                             {new Date(s.date).toLocaleDateString("en-GB", {
                               weekday: "short",
                               day: "numeric",
@@ -215,7 +215,7 @@ export default async function ClientDetailPage({
                           </p>
                           <div className="flex items-center gap-2 shrink-0">
                             {s.sessionNumber && s.packageSize && (
-                              <span className="font-mono text-xs text-[#5e5e5c]">
+                              <span className="font-mono text-xs text-[var(--app-muted)]">
                                 {s.sessionNumber}/{s.packageSize}
                               </span>
                             )}
@@ -225,7 +225,7 @@ export default async function ClientDetailPage({
                               </span>
                             )}
                             {s.notes && (
-                              <span className="max-w-[120px] truncate text-xs text-[#a3a29f]">
+                              <span className="max-w-[120px] truncate text-xs text-[var(--app-tertiary)]">
                                 {s.notes}
                               </span>
                             )}
@@ -243,6 +243,6 @@ export default async function ClientDetailPage({
 
       {/* Danger zone — last on page */}
       <DeleteClientButton clientId={client.id} clientName={client.name} />
-    </div>
+    </main>
   );
 }

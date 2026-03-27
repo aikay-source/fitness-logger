@@ -35,22 +35,22 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-svh items-center justify-center px-4">
+    <main id="main-content" className="flex min-h-svh items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-8">
         {/* Logo / wordmark */}
         <div className="space-y-1">
-          <h1 className="font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
+          <h1 className="font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
             FitLog
           </h1>
-          <p className="text-2xl font-semibold tracking-tight text-[#f2f1ed]">
+          <p className="text-2xl font-semibold tracking-tight text-[var(--app-text)]">
             Welcome back
           </p>
-          <p className="text-sm text-[#a3a29f]">Sign in to your coach account</p>
+          <p className="text-sm text-[var(--app-tertiary)]">Sign in to your coach account</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="email" className="text-[#a3a29f]">
+            <Label htmlFor="email" className="text-[var(--app-tertiary)]">
               Email
             </Label>
             <Input
@@ -61,12 +61,12 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="coach@example.com"
-              className="border-[#3d3d3c] bg-[#1e1e1d] text-[#f2f1ed] placeholder:text-[#5e5e5c] focus-visible:ring-[#a3a29f]"
+              className="border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] placeholder:text-[var(--app-muted)] focus-visible:ring-[var(--app-tertiary)]"
             />
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="password" className="text-[#a3a29f]">
+            <Label htmlFor="password" className="text-[var(--app-tertiary)]">
               Password
             </Label>
             <Input
@@ -77,23 +77,24 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="border-[#3d3d3c] bg-[#1e1e1d] text-[#f2f1ed] placeholder:text-[#5e5e5c] focus-visible:ring-[#a3a29f]"
+              className="border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] placeholder:text-[var(--app-muted)] focus-visible:ring-[var(--app-tertiary)]"
             />
           </div>
 
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#f2f1ed] font-semibold text-[#141413] hover:bg-white"
+            aria-busy={loading}
+            className="w-full bg-[var(--app-text)] font-semibold text-[var(--app-text-inv)] hover:opacity-90"
           >
             {loading ? "Signing in…" : "Sign in"}
           </Button>
         </form>
 
-        <p className="text-center text-xs text-[#5e5e5c]">
+        <p className="text-center text-xs text-[var(--app-muted)]">
           First time? Enter any email and password to create your account.
         </p>
       </div>
-    </div>
+    </main>
   );
 }

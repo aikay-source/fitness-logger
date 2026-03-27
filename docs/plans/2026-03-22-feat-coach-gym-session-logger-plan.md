@@ -88,7 +88,6 @@ model Client {
   phone                  String?
   totalSessionsPurchased Int       @default(0)
   sessionsRemaining      Int       @default(0)
-  unpaidSessions         Int       @default(0)  // only valid when sessionsRemaining = 0
   active                 Boolean   @default(true)
   coachId                String
   coach                  User      @relation(fields: [coachId], references: [id], onDelete: Cascade)
@@ -187,21 +186,16 @@ Key files:
 **Goal:** Coaches can add, view, and import clients.
 
 Tasks:
-- [x] `/clients` page — roster list with `sessionsRemaining` badge (red ≤ 2, amber ≤ 5) + purple `unpaid` badge
-- [x] `/clients/new` page — form: Name, Phone, Sessions Purchased, Sessions Remaining; Unpaid Sessions field appears only when Sessions Remaining = 0
-- [x] `/clients/[id]` page — client detail with editable package + unpaid card with "Mark settled" button
-- [x] `/clients/import` page — CSV/Excel 3-step flow: upload → column mapping (auto-detects headers) → preview → bulk import
-- [x] Column mapping includes: Name, Sessions Purchased, Sessions Remaining, Unpaid Sessions, Phone
-- [x] `/api/clients/import` — bulk `createMany`; enforces unpaidSessions = 0 when sessionsRemaining > 0
-- [x] `/api/clients` POST — create single client; DELETE — bulk delete all clients for coach
-- [x] `/api/clients/[id]` PATCH/DELETE — update package + unpaid; hard delete (cascades to sessions)
-- [x] Client detail page — "Danger zone" section with modal confirmation to delete individual client
-- [x] Client list page — "Delete all (N)" button with modal confirmation to remove all clients
-- [x] Import preview — shows all rows (not just first 5) in a scrollable list
-- [x] Import preview copy — changed from `3/10 sessions remaining` to `3 of 10 sessions left` for clarity
-- [x] Smart Import AI parser — flattens 2D grid to per-cell entries before sending to AI; handles date-log grid format (e.g. `Kate9/11`, `Lulu3/u`, `Philip`)
-
-**Business rule:** `unpaidSessions` is only valid when `sessionsRemaining = 0`. Enforced at every entry point: log session action, add client form, client detail edit, and import API.
+- [ ] `/clients` page — table of all clients with `sessionsRemaining` badge, color-coded (red ≤ 2, amber ≤ 5)
+- [ ] `/clients/new` page — form: Name (required), Phone (optional), Total Sessions Purchased, Sessions Remaining
+- [ ] Server action `createClient` — validates, writes to DB
+- [ ] `/clients/[id]` page — client detail with editable package fields and full session history
+- [ ] Server action `updateClientPackage` — updates `totalSessionsPurchased` + `sessionsRemaining`
+- [ ] `/clients/import` page — drag-and-drop file uploader
+- [ ] `lib/import-clients.ts` — `parseClientFile(file)` using Papa Parse (CSV) + SheetJS (Excel)
+- [ ] Column mapping UI — show detected columns, let coach map to Name / Total Sessions / Sessions Remaining
+- [ ] `/api/clients/import` route — chunked upsert (100 rows/chunk) with duplicate detection by name
+- [ ] Confirmation step — show "X clients imported, Y skipped (duplicates)"
 
 Key files:
 - `app/clients/page.tsx`
@@ -239,12 +233,12 @@ Flow:
 - Same confirmation + commit flow as above
 
 Tasks:
-- [x] `/sessions/new` page with tab toggle: "Quick Log" | "Manual Log"
-- [x] `/api/ai/parse-session` route — Groq `llama-3.3-70b-versatile`, `response_format: json_object`
-- [x] `lib/fuzzy-match.ts` — exact → first-name → Levenshtein ≤3 matching
-- [x] Server action `logSession` — transactional insert + decrement; if `sessionsRemaining = 0` increments `unpaidSessions` instead
-- [x] Offline support — IndexedDB queue via `idb`; syncs on reconnect via `useOfflineSync` hook
-- [x] Confirmation UI — matched clients with "could not find" warning; shows sessions remaining after log
+- [ ] `/sessions/new` page with tab toggle: "Quick Log" | "Manual Log"
+- [ ] `/api/ai/parse-session` route — Groq call with retry + safe JSON parse
+- [ ] `lib/fuzzy-match.ts` — match extracted names to DB clients (Levenshtein / `fastest-levenshtein`)
+- [ ] Server action `logSession(clientIds, date, notes?)` — transactional: inserts sessions + decrements counts
+- [ ] Offline support — if `!navigator.onLine`, write to IndexedDB via `lib/offline-queue.ts`; sync on `window.addEventListener('online')`
+- [ ] Confirmation UI — show matched clients with "Could not find: X" warning for unmatched names
 
 Key files:
 - `app/sessions/new/page.tsx`
@@ -261,17 +255,22 @@ Key files:
 
 #### Setup
 
-- [x] VAPID keys generated and stored in `.env.local`
-- [x] `lib/send-push.ts` — VAPID configured; handles `410/404 Gone` by deleting stale subscriptions
-- [x] `/api/push/subscribe` POST — upserts subscription
-- [x] `/api/push/unsubscribe` DELETE — removes subscription
-- [x] Service worker push + notificationclick handlers in `app/sw.ts`
-- [x] `hooks/usePushNotifications.ts` — requests permission, subscribes via PushManager
+- [ ] Generate VAPID keys (one-time): `node -e "require('web-push').generateVAPIDKeys()"`
+- [ ] Store in `.env.local`: `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`
+- [ ] `lib/send-push.ts` — configures `web-push` with VAPID; handles `410 Gone` by deleting stale subscriptions from DB
+- [ ] `/api/push/subscribe` POST — saves subscription to `PushSubscription` table
+- [ ] `/api/push/unsubscribe` DELETE — removes subscription
+- [ ] Service worker push handler in `src/sw.ts`:
+  ```ts
+  self.addEventListener('push', event => { /* show notification */ })
+  self.addEventListener('notificationclick', event => { /* navigate to url */ })
+  ```
+- [ ] `hooks/usePushNotifications.ts` — subscribes on permission grant; calls `/api/push/subscribe`
 
 #### Onboarding Push Permission
 
-- [x] `/onboarding` page — step 1: set reminder time; step 2: enable push permission
-- [x] `saveReminderSettings` server action — saves `reminderTime` + `reminderEnabled` to `User`
+- [ ] `/onboarding` page — step 1: set reminder time (time picker); step 2: enable push with browser permission prompt
+- [ ] Save `reminderTime` + `reminderEnabled` to `User` model via server action
 
 #### Vercel Cron Jobs (`vercel.json`)
 
@@ -287,11 +286,10 @@ Key files:
 
 > **Daily reminders:** The cron runs every hour. Each job checks which coaches have `reminderTime` matching the current UTC hour and sends push only to them.
 
-- [x] `/api/cron/daily-reminders` — matches `reminderTime` to current UTC hour; push per coach
-- [x] `/api/cron/low-session-check` — finds clients where `sessionsRemaining ≤ 2 > 0`; push per coach
-- [x] `/api/cron/monthly-summary` — pushes "summary ready" on 1st of each month
-- [x] All cron routes protected with `Authorization: Bearer CRON_SECRET`
-- [x] `vercel.json` — cron schedule definitions
+- [ ] `/api/cron/daily-reminders` — filter users by `reminderTime` matching current hour; push "Don't forget to log today's sessions!"
+- [ ] `/api/cron/low-session-check` — find all clients where `sessionsRemaining ≤ 2 AND sessionsRemaining > 0`; push per coach
+- [ ] `/api/cron/monthly-summary` — trigger Groq summary generation for each coach; push "Your [Month] summary is ready"
+- [ ] All cron routes protected with `Authorization: Bearer ${CRON_SECRET}`
 
 Key files:
 - `lib/send-push.ts`
@@ -332,12 +330,11 @@ Summary cards:
 - Columns: `Date, Client Name, Notes`
 
 Tasks:
-- [x] `/reports` page — month navigator, stat grid, on-demand AI summary, session table, expiring packages, Export CSV
-- [x] `/api/reports/monthly?year=&month=` — sessions + stats (total, unique clients, most active, low-package clients)
-- [x] `/api/ai/monthly-summary` POST — Groq narrative; cached in `MonthlySummaryCache` by coach+month+sessionCount
-- [x] `lib/export-csv.ts` — `exportToCSV(rows, filename)` via Papa Parse unparse
-- [x] `MonthlySummaryCache` model added to schema
-
+- [ ] `/reports` page — month/year picker; summary cards; breakdown table; "Download CSV" button
+- [ ] `/api/reports/monthly?year=&month=` — returns sessions with client names for that period
+- [ ] `/api/ai/monthly-summary` POST — Groq summary generation, cached per coach+month
+- [ ] `lib/export-csv.ts` — `exportToCSV(rows, filename)` utility
+- [ ] Add `monthlySummaryCache` field to `User` model (or separate `Report` model) to avoid re-generati
 Key files:
 - `app/reports/page.tsx`
 - `app/api/reports/monthly/route.ts`
@@ -351,18 +348,16 @@ Key files:
 **Goal:** Dashboard is the coach's home screen. Settings lets them reconfigure everything.
 
 Dashboard (`/`):
-- [x] "Log Today's Sessions" CTA → `/sessions/new`
-- [x] "Heads up" section — clients with `sessionsRemaining ≤ 2`
-- [x] "Unpaid" section — clients with `unpaidSessions > 0` (purple cards)
-- [x] "This Month" — session count + most active client + "View full report →" link
-- [x] Streak counter — 🔥 N days badge when streak ≥ 2
-- [x] Recent sessions list (last 5)
+- [ ] "Log Today's Sessions" quick-action button → `/sessions/new`
+- [ ] "Alerts" section — clients with `sessionsRemaining ≤ 2` shown as warning cards
+- [ ] "This Month" mini-summary — session count, unique clients
+- [ ] Recent sessions list (last 7 days)
 
 Settings (`/settings`):
-- [x] Reminder time picker + toggle + save
-- [x] Push notifications enable/disable
-- [x] Account section (name, email, sign out)
-- [x] Link back to `/onboarding`
+- [ ] Change reminder time (time picker + save)
+- [ ] Toggle daily reminder on/off
+- [ ] Re-trigger push permission if denied
+- [ ] Account section (name, email, sign out)
 
 ---
 
@@ -376,9 +371,9 @@ Settings (`/settings`):
 
 #### New Dependency
 
-- [x] `npm install framer-motion canvas-confetti`
-- [x] `npm install -D @types/canvas-confetti`
-- [x] Create `lib/motion.config.ts` with shared spring/easing constants:
+- [ ] `npm install framer-motion canvas-confetti`
+- [ ] `npm install -D @types/canvas-confetti`
+- [ ] Create `lib/motion.config.ts` with shared spring/easing constants:
 
 ```ts
 export const spring = { type: 'spring', stiffness: 400, damping: 30 };
@@ -388,15 +383,15 @@ export const easeOut = { duration: 0.2, ease: 'easeOut' };
 
 #### Product Mechanics
 
-- [x] **Conversational quick-log UI** — the AI reply animates in as a chat bubble after parsing; confirmation is a single large tap target. Replaces the current "form-style" confirmation card.
-- [x] **Package completion moment** — when `sessionsRemaining` hits 0 after a log, replace the standard confirmation toast with a special full-width card: *"[Name] just finished their package — time to renew?"* with an inline CTA to update the package. Implemented in `logSession` server action: detect `sessionsRemaining === 0` post-decrement and return a `completedPackage: true` flag to the client.
-- [x] **Quiet streak counter on dashboard** — query consecutive days with at least one session logged. Display as *"🔥 N days logged"* only when streak ≥ 2. Zero-config, just a DB query on page load. Hide if streak is 0 or 1.
-- [x] **Personal coach stats on dashboard** — surface *"X sessions this month · Most active: [Name]"* below the greeting. Computed from existing session data, no new models needed.
-- [x] **Time-aware greeting** — dashboard header reads *"Good morning, Coach."* / *"Good afternoon."* / *"Good evening."* based on `new Date().getHours()` client-side.
+- [ ] **Conversational quick-log UI** — the AI reply animates in as a chat bubble after parsing; confirmation is a single large tap target. Replaces the current "form-style" confirmation card.
+- [ ] **Package completion moment** — when `sessionsRemaining` hits 0 after a log, replace the standard confirmation toast with a special full-width card: *"[Name] just finished their package — time to renew?"* with an inline CTA to update the package. Implemented in `logSession` server action: detect `sessionsRemaining === 0` post-decrement and return a `completedPackage: true` flag to the client.
+- [ ] **Quiet streak counter on dashboard** — query consecutive days with at least one session logged. Display as *"🔥 N days logged"* only when streak ≥ 2. Zero-config, just a DB query on page load. Hide if streak is 0 or 1.
+- [ ] **Personal coach stats on dashboard** — surface *"X sessions this month · Most active: [Name]"* below the greeting. Computed from existing session data, no new models needed.
+- [ ] **Time-aware greeting** — dashboard header reads *"Good morning, Coach."* / *"Good afternoon."* / *"Good evening."* based on `new Date().getHours()` client-side.
 
 #### Motion
 
-- [x] **Session count number roll** — wrap all `sessionsRemaining` displays in an `<AnimatedNumber>` component using Framer Motion's `AnimatePresence`. When value changes, old number exits upward (`y: -12, opacity: 0`), new number enters from below (`y: 12 → 0`). Used on client cards and the post-log confirmation.
+- [ ] **Session count number roll** — wrap all `sessionsRemaining` displays in an `<AnimatedNumber>` component using Framer Motion's `AnimatePresence`. When value changes, old number exits upward (`y: -12, opacity: 0`), new number enters from below (`y: 12 → 0`). Used on client cards and the post-log confirmation.
 
 ```tsx
 // components/AnimatedNumber.tsx
@@ -413,7 +408,7 @@ export const easeOut = { duration: 0.2, ease: 'easeOut' };
 </AnimatePresence>
 ```
 
-- [x] **Subtle confetti on session confirm** — fire `canvas-confetti` once, at the moment the coach taps "Confirm". 30 particles, high gravity (falls fast), 0.4s duration. Not looping. Not full-screen. Called only from the session confirmation handler.
+- [ ] **Subtle confetti on session confirm** — fire `canvas-confetti` once, at the moment the coach taps "Confirm". 30 particles, high gravity (falls fast), 0.4s duration. Not looping. Not full-screen. Called only from the session confirmation handler.
 
 ```ts
 // lib/confetti.ts
@@ -423,15 +418,15 @@ export function celebrateSession() {
 }
 ```
 
-- [x] **Spring press on all interactive elements** — apply `whileTap={{ scale: 0.96 }}` + `transition={spring}` to all `<Button>`, primary cards, and confirm targets. Wrap in a shared `<Pressable>` component to avoid repetition.
+- [ ] **Spring press on all interactive elements** — apply `whileTap={{ scale: 0.96 }}` + `transition={spring}` to all `<Button>`, primary cards, and confirm targets. Wrap in a shared `<Pressable>` component to avoid repetition.
 
-- [x] **Staggered card entrance on roster** — wrap the client list in a Framer Motion `variants` container with `staggerChildren: 0.04`. Each card mounts with `y: 8 → 0, opacity: 0 → 1`.
+- [ ] **Staggered card entrance on roster** — wrap the client list in a Framer Motion `variants` container with `staggerChildren: 0.04`. Each card mounts with `y: 8 → 0, opacity: 0 → 1`.
 
-- [x] **Report numbers count up** — on `/reports` page mount, animate all summary stat numbers from 0 to their final value over 800ms using a custom `useCountUp(target, duration)` hook with `requestAnimationFrame`.
+- [ ] **Report numbers count up** — on `/reports` page mount, animate all summary stat numbers from 0 to their final value over 800ms using a custom `useCountUp(target, duration)` hook with `requestAnimationFrame`.
 
-- [x] **Animated package progress ring** — SVG circle on each client card/detail. Animates `stroke-dashoffset` from full (empty) to the correct fill position on mount. Color: green (`#22c55e`) > 5 sessions, amber (`#f59e0b`) 3–5, red (`#ef4444`) ≤ 2. Transition on log: re-animates forward by one step.
+- [ ] **Animated package progress ring** — SVG circle on each client card/detail. Animates `stroke-dashoffset` from full (empty) to the correct fill position on mount. Color: green (`#22c55e`) > 5 sessions, amber (`#f59e0b`) 3–5, red (`#ef4444`) ≤ 2. Transition on log: re-animates forward by one step.
 
-- [x] **Contextual toast copy** — replace all generic "Session logged" toasts with context-aware messages. Create `lib/toast-messages.ts`:
+- [ ] **Contextual toast copy** — replace all generic "Session logged" toasts with context-aware messages. Create `lib/toast-messages.ts`:
 
 ```ts
 export function sessionLoggedMessage(clientCount: number, lowClients: string[]): string {
@@ -508,26 +503,24 @@ Cron `low-session-check` →
 ## Acceptance Criteria
 
 ### Functional
-- [x] Coach can register and complete onboarding (set reminder time, grant push permission)
-- [x] Coach can add clients individually (name, total sessions, sessions remaining, unpaid if balance is zero)
-- [x] Coach can import clients from CSV/Excel with column mapping; unpaid sessions column supported
-- [x] Coach can log a session via natural language; AI parses names with fuzzy matching fallback
-- [x] Session log always shows a confirmation step before committing
-- [x] `sessionsRemaining` decremented on log; if already 0, `unpaidSessions` incremented instead
-- [x] Session logs made while offline are saved and synced on reconnect
-- [x] Coach receives a push notification when any client reaches ≤2 sessions remaining
-- [x] Coach receives a daily push notification at their configured reminder time
-- [x] Monthly report page shows all sessions with client name, date, and notes
-- [x] Coach can download the monthly report as a CSV file
-- [x] Coach can update their reminder time in Settings
-- [x] Dashboard surfaces clients with unpaid sessions; coach can mark them settled from client detail page
-- [x] **Unpaid rule:** `unpaidSessions` only set when `sessionsRemaining = 0` — enforced at log, add, edit, and import
+- [ ] Coach can register and complete onboarding (set reminder time, grant push permission)
+- [ ] Coach can add clients individually (name, total sessions, sessions remaining)
+- [ ] Coach can import clients from a CSV or Excel file; duplicate names are skipped with a count shown
+- [ ] Coach can log a session via natural language; AI correctly identifies client names with ≥90% accuracy on first names
+- [ ] Session log always shows a confirmation step before committing
+- [ ] `sessionsRemaining` is decremented correctly after every confirmed session log
+- [ ] Session logs made while offline are saved and synced on reconnect
+- [ ] Coach receives a push notification when any client reaches ≤2 sessions remaining
+- [ ] Coach receives a daily push notification at their configured reminder time
+- [ ] Monthly report page shows all sessions for the selected month with client name, date, and notes
+- [ ] Coach can download the monthly report as a CSV file
+- [ ] Coach can update their reminder time in Settings
 
 ### Non-Functional
-- [x] PWA: app is installable on iOS Safari and Android Chrome
-- [x] Groq API errors do not crash the app; fallback to manual log is always available
-- [x] All cron routes return 401 without correct `CRON_SECRET`
-- [x] SQLite in dev; schema is Supabase/Postgres-ready with one provider change
+- [ ] PWA: app is installable on iOS Safari and Android Chrome
+- [ ] Groq API errors do not crash the app; fallback to manual log is always available
+- [ ] All cron routes return 401 without correct `CRON_SECRET`
+- [ ] SQLite in dev; schema is Supabase/Postgres-ready with one provider change
 
 ### Delight (Phase 7)
 - [ ] Session count decrements with a visible number roll animation

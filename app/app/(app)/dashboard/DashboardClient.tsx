@@ -4,11 +4,16 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Loader2, CheckCircle2, AlertTriangle, MessageCircle } from "lucide-react";
 import confetti from "canvas-confetti";
+import { EASE_OUT } from "@/lib/motion.config";
 import type { ChatResponse } from "@/app/api/ai/chat/route";
 
 type Message =
-  | { role: "user"; text: string }
-  | { role: "assistant"; response: ChatResponse };
+  | { role: "user"; text: string; id: number }
+  | { role: "assistant"; response: ChatResponse; id: number };
+
+let msgId = 0;
+
+const ease = EASE_OUT as [number, number, number, number];
 
 function buildSuggestions(names: string[]): string[] {
   if (names.length === 0) {
@@ -51,7 +56,7 @@ export default function DashboardClient({ clientNames = [] }: { clientNames?: st
     const trimmed = text.trim();
     if (!trimmed || loading) return;
 
-    const newUserMsg: Message = { role: "user", text: trimmed };
+    const newUserMsg: Message = { role: "user", text: trimmed, id: ++msgId };
     const updatedMessages = [...messages, newUserMsg];
     setMessages(updatedMessages);
     setInput("");
@@ -70,11 +75,11 @@ export default function DashboardClient({ clientNames = [] }: { clientNames?: st
         body: JSON.stringify({ message: trimmed, history: history.slice(0, -1) }),
       });
       const data = (await res.json()) as ChatResponse;
-      setMessages((prev) => [...prev, { role: "assistant", response: data }]);
+      setMessages((prev) => [...prev, { role: "assistant", response: data, id: ++msgId }]);
     } catch {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", response: { type: "error", message: "Network error. Please try again." } },
+        { role: "assistant", response: { type: "error", message: "Network error. Please try again." }, id: ++msgId },
       ]);
     } finally {
       setLoading(false);
@@ -91,25 +96,26 @@ export default function DashboardClient({ clientNames = [] }: { clientNames?: st
 
   return (
     <section className="space-y-2">
-      <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f] text-wrap-balance">
+      <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)] text-wrap-balance">
         Quick log
       </h2>
 
-      <div className="rounded-xl border border-[#3d3d3c] bg-[#1e1e1d] overflow-hidden">
+      <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] overflow-hidden">
         {/* Message history */}
         {messages.length > 0 && (
-          <div ref={chatContainerRef} className="max-h-72 overflow-y-auto px-4 py-3 space-y-3">
+          <div ref={chatContainerRef} role="log" aria-live="polite" aria-atomic="false" aria-label="Chat messages" className="max-h-72 overflow-y-auto px-4 py-3 space-y-3">
             <AnimatePresence initial={false}>
-              {messages.map((msg, i) => (
+              {messages.map((msg) => (
                 <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2, ease: [0.2, 0, 0, 1] }}
+                  key={msg.id}
+                  initial={{ transform: "translateY(8px)", opacity: 0 }}
+                  animate={{ transform: "translateY(0px)", opacity: 1 }}
+                  exit={{ transform: "translateY(-4px)", opacity: 0, pointerEvents: "none" as const }}
+                  transition={{ duration: 0.2, ease }}
                 >
                   {msg.role === "user" ? (
                     <div className="flex justify-end">
-                      <p className="max-w-[80%] rounded-lg rounded-br-sm bg-[#f2f1ed] px-3 py-2 text-sm text-[#141413]">
+                      <p className="max-w-[80%] rounded-lg rounded-br-sm bg-[var(--app-text)] px-3 py-2 text-sm text-[var(--app-text-inv)]">
                         {msg.text}
                       </p>
                     </div>
@@ -123,7 +129,9 @@ export default function DashboardClient({ clientNames = [] }: { clientNames?: st
                   key="loading"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="flex items-center gap-2 text-[#5e5e5c]"
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15, ease }}
+                  className="flex items-center gap-2 text-[var(--app-muted)]"
                 >
                   <Loader2 size={13} className="animate-spin" />
                   <span className="text-xs">Thinking…</span>
@@ -136,43 +144,49 @@ export default function DashboardClient({ clientNames = [] }: { clientNames?: st
         {/* Suggestions + capability hint — shown only when no messages */}
         {messages.length === 0 && (
           <div className="px-4 pt-3 pb-2 space-y-2">
-            <div className="flex flex-wrap gap-2">
-              {suggestions.map((s) => (
-                <button
+            <div role="group" aria-label="Quick suggestions" className="flex flex-wrap gap-2">
+              {suggestions.map((s, i) => (
+                <motion.button
                   key={s}
+                  initial={{ opacity: 0, transform: "translateY(4px)" }}
+                  animate={{ opacity: 1, transform: "translateY(0px)" }}
+                  transition={{ duration: 0.2, delay: i * 0.05, ease }}
                   onClick={() => send(s)}
-                  className="rounded-full border border-[#3d3d3c] px-3 py-2.5 font-mono text-xs text-[#5e5e5c] hover:border-[#5e5e5c] hover:text-[#a3a29f] active:scale-[0.96] transition-[border-color,color,transform]"
+                  className="rounded-full border border-[var(--app-border)] px-3 py-2.5 font-mono text-xs text-[var(--app-muted)] hover:border-[var(--app-muted)] hover:text-[var(--app-tertiary)] active:scale-[0.96] transition-[border-color,color,transform]"
                 >
                   {s}
-                </button>
+                </motion.button>
               ))}
             </div>
-            <p className="text-xs text-[#5e5e5c] text-pretty">
+            <p className="text-xs text-[var(--app-muted)] text-pretty">
               Log sessions, ask about client history, or check stats.
             </p>
           </div>
         )}
 
         {/* Input */}
-        <div className="flex items-center gap-2 border-t border-[#3d3d3c] px-3 py-2.5">
-          <MessageCircle size={14} className="text-[#5e5e5c] shrink-0" />
+        <div className="flex items-center gap-2 border-t border-[var(--app-border)] px-3 py-2.5">
+          <MessageCircle size={14} className="text-[var(--app-muted)] shrink-0" aria-hidden="true" />
           <input
             ref={inputRef}
+            id="chat-input"
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKey}
             placeholder="Trained anyone today?"
+            aria-label="Log sessions or ask about client history"
             maxLength={200}
             disabled={loading}
-            className="flex-1 bg-transparent text-sm text-[#f2f1ed] placeholder-[#5e5e5c] focus:outline-none disabled:opacity-50"
+            className="flex-1 bg-transparent text-sm text-[var(--app-text)] placeholder-[var(--app-muted)] focus:outline-none disabled:opacity-50"
           />
           <button
             onClick={() => send(input)}
             disabled={!input.trim() || loading}
-            className="relative shrink-0 rounded-lg p-2.5 text-[#5e5e5c] hover:text-[#a3a29f] active:scale-[0.96] disabled:opacity-30 transition-[color,transform] before:absolute before:inset-[-4px] before:content-['']"
+            aria-label={loading ? "Sending…" : "Send message"}
+            className="relative shrink-0 rounded-lg p-2.5 text-[var(--app-muted)] hover:text-[var(--app-tertiary)] active:scale-[0.96] disabled:opacity-30 transition-[color,transform] before:absolute before:inset-[-4px] before:content-['']"
           >
-            {loading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+            {loading ? <Loader2 size={14} className="animate-spin" aria-hidden="true" /> : <Send size={14} aria-hidden="true" />}
           </button>
         </div>
       </div>
@@ -187,7 +201,10 @@ function AssistantBubble({ response }: { response: ChatResponse }) {
         particleCount: 40,
         spread: 50,
         origin: { y: 0.6 },
-        colors: ["#f2f1ed", "#a3a29f", "#3d3d3c"],
+        colors: (() => {
+          const s = getComputedStyle(document.documentElement);
+          return [s.getPropertyValue("--app-text").trim(), s.getPropertyValue("--app-tertiary").trim(), s.getPropertyValue("--app-border").trim()];
+        })(),
         disableForReducedMotion: true,
       });
     }
@@ -198,7 +215,7 @@ function AssistantBubble({ response }: { response: ChatResponse }) {
       <div className="space-y-1.5">
         <div className="flex items-start gap-2">
           <CheckCircle2 size={14} className="text-emerald-400 shrink-0 mt-0.5" />
-          <p className="text-sm text-[#f2f1ed]">{response.summary}</p>
+          <p className="text-sm text-[var(--app-text)]">{response.summary}</p>
         </div>
         {response.details.completedPackages.length > 0 && (
           <p className="ml-5 font-mono text-xs text-amber-400">
@@ -222,8 +239,8 @@ function AssistantBubble({ response }: { response: ChatResponse }) {
   if (response.type === "query_result") {
     return (
       <div className="flex items-start gap-2">
-        <div className="mt-0.5 size-3.5 shrink-0 rounded-full bg-[#3d3d3c]" />
-        <p className="text-sm text-[#f2f1ed]">{response.answer}</p>
+        <div className="mt-0.5 size-3.5 shrink-0 rounded-full bg-[var(--app-border)]" />
+        <p className="text-sm text-[var(--app-text)]">{response.answer}</p>
       </div>
     );
   }
@@ -232,7 +249,7 @@ function AssistantBubble({ response }: { response: ChatResponse }) {
     return (
       <div className="flex items-start gap-2">
         <AlertTriangle size={14} className="text-amber-400 shrink-0 mt-0.5" />
-        <p className="text-sm text-[#a3a29f]">{response.message}</p>
+        <p className="text-sm text-[var(--app-tertiary)]">{response.message}</p>
       </div>
     );
   }
@@ -241,7 +258,7 @@ function AssistantBubble({ response }: { response: ChatResponse }) {
   return (
     <div className="flex items-start gap-2">
       <AlertTriangle size={14} className="text-red-400 shrink-0 mt-0.5" />
-      <p className="text-sm text-[#a3a29f]">{response.message}</p>
+      <p className="text-sm text-[var(--app-tertiary)]">{response.message}</p>
     </div>
   );
 }

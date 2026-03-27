@@ -28,8 +28,14 @@ export default function PackageRing({
   const offset = CIRCUMFERENCE * (1 - fraction);
   const color = ringColor(remaining);
 
+  const statusLabel = remaining <= 2 ? "critical" : remaining <= 5 ? "low" : "ok";
+
   return (
-    <div className={`relative flex items-center justify-center ${className ?? ""}`}>
+    <div
+      className={`relative flex items-center justify-center ${className ?? ""}`}
+      role="img"
+      aria-label={`${remaining} of ${total} sessions remaining (${statusLabel})`}
+    >
       <svg
         width={SIZE}
         height={SIZE}
@@ -43,7 +49,7 @@ export default function PackageRing({
           cy={SIZE / 2}
           r={RADIUS}
           fill="none"
-          stroke="#3d3d3c"
+          stroke="var(--app-border)"
           strokeWidth={STROKE}
         />
         {/* Animated progress */}
@@ -61,7 +67,7 @@ export default function PackageRing({
           transition={{ duration: 0.6, ease: "easeOut" }}
         />
       </svg>
-      <span className="absolute font-mono text-[10px] font-semibold tabular-nums text-[#f2f1ed]">
+      <span aria-hidden="true" className="absolute font-mono text-[10px] font-semibold tabular-nums text-[var(--app-text)]">
         {remaining}
       </span>
     </div>

@@ -37,9 +37,9 @@ type BulkRow = {
 const MAX_AI_ROWS = 200;
 
 const inputClass =
-  "w-full rounded-lg border border-[#3d3d3c] bg-[#1e1e1d] px-3 py-2.5 text-sm text-[#f2f1ed] placeholder:text-[#5e5e5c] focus:border-[#a3a29f] focus:outline-none transition-colors";
+  "w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-2.5 text-sm text-[var(--app-text)] placeholder:text-[var(--app-muted)] focus:border-[var(--app-tertiary)] focus:outline-none transition-colors";
 const labelClass =
-  "block font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f] mb-1.5";
+  "block font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)] mb-1.5";
 
 export default function AddClientsModal({
   existingNames,
@@ -398,7 +398,7 @@ export default function AddClientsModal({
     triggerVariant === "empty-state" ? (
       <button
         onClick={() => setOpen(true)}
-        className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-[#f2f1ed] px-4 py-2 text-sm font-semibold text-[#141413] hover:bg-white active:scale-[0.96] transition-[background-color,transform]"
+        className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-[var(--app-text)] px-4 py-2 text-sm font-semibold text-[var(--app-text-inv)] hover:opacity-90 active:scale-[0.96] transition-[background-color,transform]"
       >
         <PlusCircle size={14} />
         Add your first client
@@ -406,7 +406,7 @@ export default function AddClientsModal({
     ) : (
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 rounded-lg bg-[#f2f1ed] px-3 py-2 text-xs font-semibold text-[#141413] hover:bg-white active:scale-[0.96] transition-[background-color,transform]"
+        className="flex items-center gap-1.5 rounded-lg bg-[var(--app-text)] px-3 py-2 text-xs font-semibold text-[var(--app-text-inv)] hover:opacity-90 active:scale-[0.96] transition-[background-color,transform]"
       >
         <PlusCircle size={13} />
         Add clients
@@ -415,18 +415,18 @@ export default function AddClientsModal({
 
   // Inline cell input styles
   const cellInputClass =
-    "w-full bg-transparent text-[#f2f1ed] focus:outline-none border-b border-transparent focus:border-[#a3a29f] transition-colors";
+    "w-full bg-transparent text-[var(--app-text)] focus:outline-none border-b border-transparent focus:border-[var(--app-tertiary)] transition-colors";
   const cellNumInputClass =
-    "w-full bg-transparent text-right text-[#a3a29f] focus:outline-none border-b border-transparent focus:border-[#a3a29f] transition-colors";
+    "w-full bg-transparent text-right text-[var(--app-tertiary)] focus:outline-none border-b border-transparent focus:border-[var(--app-tertiary)] transition-colors";
 
   return (
     <>
       {trigger}
 
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="bg-[#1e1e1d] border border-[#3d3d3c] text-[#f2f1ed] sm:max-w-lg">
+        <DialogContent className="bg-[var(--app-surface)] border border-[var(--app-border)] text-[var(--app-text)] sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-[#f2f1ed]">Add clients</DialogTitle>
+            <DialogTitle className="text-[var(--app-text)]">Add clients</DialogTitle>
           </DialogHeader>
 
           <Tabs defaultValue="single">
@@ -453,10 +453,14 @@ export default function AddClientsModal({
                     onChange={handleFormChange}
                     placeholder="Alex Johnson"
                     maxLength={100}
+                    required
+                    aria-required="true"
+                    aria-invalid={nameError}
+                    aria-describedby={nameError ? "modal-name-error" : undefined}
                     className={inputClass + (nameError ? " !border-red-500" : "")}
                   />
                   {nameError && (
-                    <p className="mt-1 text-xs text-red-400">Name is required</p>
+                    <p id="modal-name-error" role="alert" className="mt-1 text-xs text-red-400">Name is required</p>
                   )}
                 </div>
 
@@ -496,7 +500,7 @@ export default function AddClientsModal({
                 <div>
                   <label htmlFor="modal-last-session" className={labelClass}>
                     Last session date{" "}
-                    <span className="normal-case text-[#5e5e5c]">(optional)</span>
+                    <span className="normal-case text-[var(--app-muted)]">(optional)</span>
                   </label>
                   <input
                     id="modal-last-session"
@@ -512,7 +516,7 @@ export default function AddClientsModal({
                   <div>
                     <label htmlFor="modal-unpaid" className={labelClass}>
                       Unpaid sessions{" "}
-                      <span className="normal-case text-[#5e5e5c]">(optional)</span>
+                      <span className="normal-case text-[var(--app-muted)]">(optional)</span>
                     </label>
                     <input
                       id="modal-unpaid"
@@ -524,7 +528,7 @@ export default function AddClientsModal({
                       placeholder="0"
                       className={inputClass}
                     />
-                    <p className="mt-1 text-xs text-[#5e5e5c]">
+                    <p className="mt-1 text-xs text-[var(--app-muted)]">
                       Sessions trained that haven&apos;t been paid for yet.
                     </p>
                   </div>
@@ -534,14 +538,14 @@ export default function AddClientsModal({
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="flex-1 rounded-lg bg-[#f2f1ed] py-2.5 text-sm font-semibold text-[#141413] hover:bg-white active:scale-[0.96] disabled:opacity-50 transition-[background-color,transform]"
+                    className="flex-1 rounded-lg bg-[var(--app-text)] py-2.5 text-sm font-semibold text-[var(--app-text-inv)] hover:opacity-90 active:scale-[0.96] disabled:opacity-50 transition-[background-color,transform]"
                   >
                     {submitting ? "Adding…" : "Add client"}
                   </button>
                   <button
                     type="button"
                     onClick={handleDone}
-                    className="rounded-lg border border-[#3d3d3c] px-4 py-2.5 text-sm font-semibold text-[#a3a29f] hover:border-[#5e5e5c] hover:text-[#f2f1ed] active:scale-[0.96] transition-[border-color,color,transform]"
+                    className="rounded-lg border border-[var(--app-border)] px-4 py-2.5 text-sm font-semibold text-[var(--app-tertiary)] hover:border-[var(--app-muted)] hover:text-[var(--app-text)] active:scale-[0.96] transition-[border-color,color,transform]"
                   >
                     Done
                   </button>
@@ -559,7 +563,7 @@ export default function AddClientsModal({
                     <button
                       type="button"
                       onClick={downloadTemplate}
-                      className="flex items-center gap-2 text-sm font-medium text-[#a3a29f] hover:text-[#f2f1ed] transition-colors"
+                      className="flex items-center gap-2 text-sm font-medium text-[var(--app-tertiary)] hover:text-[var(--app-text)] transition-colors"
                     >
                       <Download size={14} />
                       Download template
@@ -569,13 +573,13 @@ export default function AddClientsModal({
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={handleFileDrop}
                       onClick={() => fileInputRef.current?.click()}
-                      className="cursor-pointer rounded-lg border border-dashed border-[#3d3d3c] p-8 text-center hover:border-[#5e5e5c] transition-colors"
+                      className="cursor-pointer rounded-lg border border-dashed border-[var(--app-border)] p-8 text-center hover:border-[var(--app-muted)] transition-colors"
                     >
-                      <Upload size={20} className="mx-auto mb-2 text-[#5e5e5c]" />
-                      <p className="text-sm text-[#a3a29f]">
+                      <Upload size={20} className="mx-auto mb-2 text-[var(--app-muted)]" />
+                      <p className="text-sm text-[var(--app-tertiary)]">
                         Drop any CSV or Excel file here
                       </p>
-                      <p className="mt-1 text-xs text-[#5e5e5c]">
+                      <p className="mt-1 text-xs text-[var(--app-muted)]">
                         AI will extract names and session data automatically
                       </p>
                       <input
@@ -599,8 +603,8 @@ export default function AddClientsModal({
                 {/* Parsing step */}
                 {bulkStep === "parsing" && (
                   <div className="flex flex-col items-center justify-center py-12 gap-3">
-                    <Loader2 size={24} className="animate-spin text-[#a3a29f]" />
-                    <p className="text-sm text-[#a3a29f]">Analysing your file…</p>
+                    <Loader2 size={24} className="animate-spin text-[var(--app-tertiary)]" />
+                    <p className="text-sm text-[var(--app-tertiary)]">Analysing your file…</p>
                   </div>
                 )}
 
@@ -618,7 +622,7 @@ export default function AddClientsModal({
                     <button
                       type="button"
                       onClick={goBackToUpload}
-                      className="w-full rounded-lg border border-[#3d3d3c] py-2.5 text-sm font-semibold text-[#a3a29f] hover:border-[#5e5e5c] hover:text-[#f2f1ed] transition-colors"
+                      className="w-full rounded-lg border border-[var(--app-border)] py-2.5 text-sm font-semibold text-[var(--app-tertiary)] hover:border-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors"
                     >
                       Try a different file
                     </button>
@@ -630,7 +634,7 @@ export default function AddClientsModal({
                   <>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-[#a3a29f]">
+                        <p className="text-sm text-[var(--app-tertiary)]">
                           {validCount} client{validCount !== 1 ? "s" : ""}{parsedSessions ? `, ${totalSessionCount} session${totalSessionCount !== 1 ? "s" : ""}` : ""} ready to import
                         </p>
                         {truncated && (
@@ -642,7 +646,7 @@ export default function AddClientsModal({
                       <button
                         type="button"
                         onClick={goBackToUpload}
-                        className="font-mono text-xs text-[#5e5e5c] hover:text-[#a3a29f] transition-colors"
+                        className="font-mono text-xs text-[var(--app-muted)] hover:text-[var(--app-tertiary)] transition-colors"
                       >
                         ← Back
                       </button>
@@ -652,26 +656,26 @@ export default function AddClientsModal({
                     {sessionsByClient ? (
                       <div className="max-h-72 overflow-y-auto space-y-2">
                         {sessionsByClient.map((client, i) => (
-                          <details key={i} className="group rounded-lg border border-[#3d3d3c] bg-[#141413]" open={i === 0}>
-                            <summary className="flex cursor-pointer items-center justify-between px-3 py-2 list-none hover:bg-[#1e1e1d] transition-colors rounded-lg">
+                          <details key={i} className="group rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)]" open={i === 0}>
+                            <summary className="flex cursor-pointer items-center justify-between px-3 py-2 list-none hover:bg-[var(--app-surface)] transition-colors rounded-lg">
                               <div className="flex items-center gap-2 min-w-0">
-                                <span className="text-sm text-[#f2f1ed] truncate">{client.name}</span>
+                                <span className="text-sm text-[var(--app-text)] truncate">{client.name}</span>
                                 {client.isDuplicate && (
                                   <span className="shrink-0 rounded-full bg-amber-500/15 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-amber-400">
                                     exists
                                   </span>
                                 )}
                               </div>
-                              <span className="shrink-0 font-mono text-xs text-[#5e5e5c]">
+                              <span className="shrink-0 font-mono text-xs text-[var(--app-muted)]">
                                 {client.sessions.length} session{client.sessions.length !== 1 ? "s" : ""}
                                 {client.totalSessionsPurchased > 0 && ` · ${client.sessionsUsed}/${client.totalSessionsPurchased}`}
                                 {client.unpaidSessions > 0 && ` · ${client.unpaidSessions} unpaid`}
                               </span>
                             </summary>
-                            <div className="border-t border-[#3d3d3c] px-3 py-1">
+                            <div className="border-t border-[var(--app-border)] px-3 py-1">
                               {client.sessions.map((s, j) => (
                                 <div key={j} className="flex items-center justify-between py-1 text-xs">
-                                  <span className="font-mono text-[#a3a29f]">
+                                  <span className="font-mono text-[var(--app-tertiary)]">
                                     {new Date(s.date + "T00:00:00").toLocaleDateString("en-GB", {
                                       day: "numeric",
                                       month: "short",
@@ -680,12 +684,12 @@ export default function AddClientsModal({
                                   </span>
                                   <div className="flex items-center gap-2">
                                     {s.sessionNumber !== null && s.packageSize !== null && (
-                                      <span className="font-mono text-[#5e5e5c]">
+                                      <span className="font-mono text-[var(--app-muted)]">
                                         {s.sessionNumber}/{s.packageSize}
                                       </span>
                                     )}
                                     {s.sessionNumber !== null && s.packageSize === null && (
-                                      <span className="font-mono text-[#5e5e5c]">
+                                      <span className="font-mono text-[var(--app-muted)]">
                                         {s.sessionNumber}/u
                                       </span>
                                     )}
@@ -701,20 +705,20 @@ export default function AddClientsModal({
                       </div>
                     ) : (
                       /* Client-roster preview: editable table */
-                      <div className="max-h-60 overflow-y-auto rounded-lg border border-[#3d3d3c]">
+                      <div className="max-h-60 overflow-y-auto rounded-lg border border-[var(--app-border)]">
                         <table className="w-full text-xs">
                           <thead className="sticky top-0 z-10">
-                            <tr className="border-b border-[#3d3d3c] bg-[#141413]">
-                              <th className="px-3 py-2 text-left font-mono font-semibold uppercase tracking-widest text-[#5e5e5c]">
+                            <tr className="border-b border-[var(--app-border)] bg-[var(--app-bg)]">
+                              <th className="px-3 py-2 text-left font-mono font-semibold uppercase tracking-widest text-[var(--app-muted)]">
                                 Name
                               </th>
-                              <th className="px-3 py-2 text-right font-mono font-semibold uppercase tracking-widest text-[#5e5e5c]">
+                              <th className="px-3 py-2 text-right font-mono font-semibold uppercase tracking-widest text-[var(--app-muted)]">
                                 Bought
                               </th>
-                              <th className="px-3 py-2 text-right font-mono font-semibold uppercase tracking-widest text-[#5e5e5c]">
+                              <th className="px-3 py-2 text-right font-mono font-semibold uppercase tracking-widest text-[var(--app-muted)]">
                                 Used
                               </th>
-                              <th className="px-3 py-2 text-right font-mono font-semibold uppercase tracking-widest text-[#5e5e5c]">
+                              <th className="px-3 py-2 text-right font-mono font-semibold uppercase tracking-widest text-[var(--app-muted)]">
                                 Unpaid
                               </th>
                             </tr>
@@ -727,9 +731,9 @@ export default function AddClientsModal({
                               return (
                                 <tr
                                   key={i}
-                                  className="border-b border-[#3d3d3c] last:border-0"
+                                  className="border-b border-[var(--app-border)] last:border-0"
                                 >
-                                  <td className="px-3 py-1.5 text-[#f2f1ed]">
+                                  <td className="px-3 py-1.5 text-[var(--app-text)]">
                                     <div className="flex flex-wrap items-center gap-1.5">
                                       <input
                                         type="text"
@@ -804,7 +808,7 @@ export default function AddClientsModal({
                       type="button"
                       onClick={handleBulkImport}
                       disabled={importing || validCount === 0}
-                      className="w-full rounded-lg bg-[#f2f1ed] py-2.5 text-sm font-semibold text-[#141413] hover:bg-white active:scale-[0.96] disabled:opacity-50 transition-[background-color,transform]"
+                      className="w-full rounded-lg bg-[var(--app-text)] py-2.5 text-sm font-semibold text-[var(--app-text-inv)] hover:opacity-90 active:scale-[0.96] disabled:opacity-50 transition-[background-color,transform]"
                     >
                       {importing ? (
                         <span className="flex items-center justify-center gap-2">

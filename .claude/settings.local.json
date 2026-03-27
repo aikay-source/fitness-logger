@@ -26,7 +26,23 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(gh repo:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(git push:*)",
+      "Bash(PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"yes\" npx prisma migrate reset --force)",
+      "Bash(sqlite3 prisma/dev.db \"SELECT count\\(*\\) FROM User;\")",
+      "Bash(grep -E '\"\"next-auth\"\"' package.json)",
+      "Bash(curl -s -X POST http://localhost:3099/api/clients -H \"Content-Type: application/json\" -d '{\"\"name\"\":\"\"Test Client\"\",\"\"totalSessionsPurchased\"\":10,\"\"sessionsRemaining\"\":10,\"\"unpaidSessions\"\":0}' -w \"\\\\n---HTTP_CODE:%{http_code}\")",
+      "Bash(curl -v -X POST http://localhost:3099/api/clients -H \"Content-Type: application/json\" -d '{\"\"\"\"name\"\"\"\":\"\"\"\"Test Client\"\"\"\",\"\"\"\"totalSessionsPurchased\"\"\"\":10,\"\"\"\"sessionsRemaining\"\"\"\":10,\"\"\"\"unpaidSessions\"\"\"\":0}')",
+      "Bash(curl:*)",
+      "Bash(taskkill:*)",
+      "Bash(MSYS_NO_PATHCONV=1 taskkill //PID 7472 //F)",
+      "Bash(kill:*)",
+      "Bash(bash)",
+      "Bash(cp:*)",
+      "Bash(npm i:*)",
+      "Bash(grep -E \"\\\\.\\(md|txt|json\\)$\")",
+      "Bash(grep -r \"\\\\[#141413\\\\]\\\\|\\\\[#1e1e1d\\\\]\\\\|\\\\[#262625\\\\]\\\\|\\\\[#3d3d3c\\\\]\\\\|\\\\[#5e5e5c\\\\]\\\\|\\\\[#a3a29f\\\\]\\\\|\\\\[#f2f1ed\\\\]\" \"C:\\\\Users\\\\USER\\\\Documents\\\\vibe-coding\\\\fitness-logger\\\\app\" --include=\"*.tsx\" --include=\"*.ts\" ! -path \"*/node_modules/*\" ! -path \"*/.next/*\" -h)",
+      "Bash(xargs sed:*)"
     ]
   }
 }

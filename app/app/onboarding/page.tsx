@@ -44,18 +44,26 @@ export default function OnboardingPage() {
   }
 
   const inputClass =
-    "w-full rounded-lg border border-[#3d3d3c] bg-[#1e1e1d] px-3 py-2.5 text-sm text-[#f2f1ed] focus:border-[#a3a29f] focus:outline-none transition-colors";
+    "w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-2.5 text-sm text-[var(--app-text)] focus:border-[var(--app-tertiary)] focus:outline-none transition-colors";
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center px-4">
+    <main id="main-content" className="flex min-h-svh flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-8">
         {/* Progress dots */}
-        <div className="flex justify-center gap-2">
+        <div
+          role="progressbar"
+          aria-valuenow={step}
+          aria-valuemin={1}
+          aria-valuemax={3}
+          aria-label={`Onboarding step ${step} of 3`}
+          className="flex justify-center gap-2"
+        >
           {([1, 2, 3] as Step[]).map((s) => (
             <div
               key={s}
+              aria-hidden="true"
               className={`h-1.5 w-6 rounded-full transition-colors ${
-                s <= step ? "bg-[#f2f1ed]" : "bg-[#3d3d3c]"
+                s <= step ? "bg-[var(--app-text)]" : "bg-[var(--app-border)]"
               }`}
             />
           ))}
@@ -65,22 +73,23 @@ export default function OnboardingPage() {
         {step === 1 && (
           <div className="space-y-6">
             <div className="space-y-1">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-[#1e1e1d]">
-                <Clock size={18} className="text-[#a3a29f]" />
+              <div className="flex size-10 items-center justify-center rounded-xl bg-[var(--app-surface)]">
+                <Clock size={18} className="text-[var(--app-tertiary)]" />
               </div>
-              <h1 className="mt-3 font-heading text-2xl font-semibold tracking-tight text-[#f2f1ed]">
+              <h1 className="mt-3 font-heading text-2xl font-semibold tracking-tight text-[var(--app-text)]">
                 When do you finish training?
               </h1>
-              <p className="text-sm text-[#a3a29f]">
+              <p className="text-sm text-[var(--app-tertiary)]">
                 We&apos;ll remind you to log sessions at this time each day.
               </p>
             </div>
 
             <div>
-              <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
+              <label htmlFor="reminder-time" className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
                 Daily reminder time
               </label>
               <input
+                id="reminder-time"
                 type="time"
                 value={reminderTime}
                 onChange={(e) => setReminderTime(e.target.value)}
@@ -92,14 +101,14 @@ export default function OnboardingPage() {
               <button
                 onClick={handleReminderNext}
                 disabled={saving}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#f2f1ed] py-2.5 text-sm font-semibold text-[#141413] hover:bg-white disabled:opacity-50 transition-colors"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--app-text)] py-2.5 text-sm font-semibold text-[var(--app-text-inv)] hover:opacity-90 disabled:opacity-50 transition-colors"
               >
                 {saving ? "Saving…" : "Next"}
                 {!saving && <ChevronRight size={14} />}
               </button>
               <button
                 onClick={handleSkipStep1}
-                className="w-full text-center text-sm text-[#5e5e5c] hover:text-[#a3a29f] transition-colors"
+                className="w-full text-center text-sm text-[var(--app-muted)] hover:text-[var(--app-tertiary)] transition-colors"
               >
                 Skip for now
               </button>
@@ -111,13 +120,13 @@ export default function OnboardingPage() {
         {step === 2 && (
           <div className="space-y-6">
             <div className="space-y-1">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-[#1e1e1d]">
-                <Bell size={18} className="text-[#a3a29f]" />
+              <div className="flex size-10 items-center justify-center rounded-xl bg-[var(--app-surface)]">
+                <Bell size={18} className="text-[var(--app-tertiary)]" />
               </div>
-              <h1 className="mt-3 font-heading text-2xl font-semibold tracking-tight text-[#f2f1ed]">
+              <h1 className="mt-3 font-heading text-2xl font-semibold tracking-tight text-[var(--app-text)]">
                 Stay on top of your clients
               </h1>
-              <p className="text-sm text-[#a3a29f]">
+              <p className="text-sm text-[var(--app-tertiary)]">
                 Get a nudge at {reminderTime} and an alert when a client&apos;s
                 package is nearly up.
               </p>
@@ -133,7 +142,7 @@ export default function OnboardingPage() {
             )}
 
             {pushState === "unsupported" && (
-              <p className="text-sm text-[#a3a29f]">
+              <p className="text-sm text-[var(--app-tertiary)]">
                 Push notifications aren&apos;t supported in this browser. Install
                 the app on your home screen for the best experience.
               </p>
@@ -144,7 +153,7 @@ export default function OnboardingPage() {
                 <button
                   onClick={handleEnableNotifications}
                   disabled={pushLoading || pushState === "denied"}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#f2f1ed] py-2.5 text-sm font-semibold text-[#141413] hover:bg-white disabled:opacity-50 transition-colors"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--app-text)] py-2.5 text-sm font-semibold text-[var(--app-text-inv)] hover:opacity-90 disabled:opacity-50 transition-colors"
                 >
                   <Bell size={14} />
                   {pushLoading
@@ -158,7 +167,7 @@ export default function OnboardingPage() {
               {pushState === "granted" && (
                 <button
                   onClick={() => setStep(3)}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#f2f1ed] py-2.5 text-sm font-semibold text-[#141413] hover:bg-white transition-colors"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--app-text)] py-2.5 text-sm font-semibold text-[var(--app-text-inv)] hover:opacity-90 transition-colors"
                 >
                   <ChevronRight size={14} />
                   Next
@@ -167,7 +176,7 @@ export default function OnboardingPage() {
 
               <button
                 onClick={() => setStep(3)}
-                className="w-full text-center text-sm text-[#5e5e5c] hover:text-[#a3a29f] transition-colors"
+                className="w-full text-center text-sm text-[var(--app-muted)] hover:text-[var(--app-tertiary)] transition-colors"
               >
                 Skip for now
               </button>
@@ -179,13 +188,13 @@ export default function OnboardingPage() {
         {step === 3 && (
           <div className="space-y-6">
             <div className="space-y-1">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-[#1e1e1d]">
-                <Users size={18} className="text-[#a3a29f]" />
+              <div className="flex size-10 items-center justify-center rounded-xl bg-[var(--app-surface)]">
+                <Users size={18} className="text-[var(--app-tertiary)]" />
               </div>
-              <h1 className="mt-3 font-heading text-2xl font-semibold tracking-tight text-[#f2f1ed]">
+              <h1 className="mt-3 font-heading text-2xl font-semibold tracking-tight text-[var(--app-text)]">
                 Add your clients
               </h1>
-              <p className="text-sm text-[#a3a29f] text-pretty">
+              <p className="text-sm text-[var(--app-tertiary)] text-pretty">
                 Add them one by one, or import a spreadsheet if you have an existing roster.
               </p>
             </div>
@@ -193,14 +202,14 @@ export default function OnboardingPage() {
             <div className="space-y-3">
               <button
                 onClick={() => router.push("/clients")}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#f2f1ed] py-2.5 text-sm font-semibold text-[#141413] hover:bg-white transition-colors"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--app-text)] py-2.5 text-sm font-semibold text-[var(--app-text-inv)] hover:opacity-90 transition-colors"
               >
                 <Users size={14} />
                 Add clients
               </button>
               <button
                 onClick={() => router.push("/dashboard")}
-                className="w-full text-center text-sm text-[#5e5e5c] hover:text-[#a3a29f] transition-colors"
+                className="w-full text-center text-sm text-[var(--app-muted)] hover:text-[var(--app-tertiary)] transition-colors"
               >
                 I&apos;ll do this later
               </button>
@@ -208,6 +217,6 @@ export default function OnboardingPage() {
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 }

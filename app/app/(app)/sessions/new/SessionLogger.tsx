@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Check, AlertCircle, Loader2, X } from "lucide-react";
 import { logSession } from "@/app/actions/sessions";
 import { type ClientStub, type MatchResult } from "@/lib/fuzzy-match";
+import { EASE_OUT } from "@/lib/motion.config";
 import { enqueueSession } from "@/lib/offline-queue";
 import confetti from "canvas-confetti";
 
@@ -22,7 +23,7 @@ type ConfirmState = {
 function sessionBadgeClass(remaining: number) {
   if (remaining <= 2) return "text-red-400";
   if (remaining <= 5) return "text-amber-400";
-  return "text-[#5e5e5c]";
+  return "text-[var(--app-muted)]";
 }
 
 function toastMessage(count: number, completed: string[], low: string[], unpaid: string[]): string {
@@ -103,7 +104,10 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
         particleCount: result.sessionCount > 2 ? 80 : 40,
         spread: 60,
         origin: { y: 0.7 },
-        colors: ["#f2f1ed", "#a3a29f", "#3d3d3c"],
+        colors: (() => {
+          const s = getComputedStyle(document.documentElement);
+          return [s.getPropertyValue("--app-text").trim(), s.getPropertyValue("--app-tertiary").trim(), s.getPropertyValue("--app-border").trim()];
+        })(),
         disableForReducedMotion: true,
       });
       toast.success(
@@ -119,7 +123,7 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
   }
 
   const inputClass =
-    "w-full rounded-lg border border-[#3d3d3c] bg-[#1e1e1d] px-3 py-2.5 text-sm text-[#f2f1ed] placeholder:text-[#5e5e5c] focus:border-[#a3a29f] focus:outline-none transition-colors";
+    "w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-2.5 text-sm text-[var(--app-text)] placeholder:text-[var(--app-muted)] focus:border-[var(--app-tertiary)] focus:outline-none transition-colors";
 
   // ── Confirmation screen ───────────────────────────────────────────────────
 
@@ -128,12 +132,12 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
       (m): m is { matched: true; client: ClientStub } => m.matched
     );
     return (
-      <div className="mx-auto max-w-lg px-4 pt-8 space-y-6">
+      <main id="main-content" className="mx-auto max-w-lg px-4 pt-8 space-y-6">
         <div>
-          <h1 className="font-heading text-2xl font-semibold tracking-tight text-[#f2f1ed]">
+          <h1 className="font-heading text-2xl font-semibold tracking-tight text-[var(--app-text)] text-wrap-balance">
             Confirm session
           </h1>
-          <p className="mt-1 text-sm text-[#a3a29f]">
+          <p className="mt-1 text-sm text-[var(--app-tertiary)]">
             {new Date(confirm.date).toLocaleDateString("en-GB", {
               weekday: "long",
               day: "numeric",
@@ -143,7 +147,7 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
         </div>
 
         {/* Matched clients */}
-        <div className="divide-y divide-[#3d3d3c] rounded-xl border border-[#3d3d3c] bg-[#1e1e1d]">
+        <div className="divide-y divide-[var(--app-border)] rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)]">
           {matchedClients.map(({ client }, i) => {
             const full = clients.find((c) => c.id === client.id);
             const remaining = full ? full.sessionsRemaining - 1 : "?";
@@ -152,11 +156,11 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
                 key={client.id}
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.2, delay: i * 0.06, ease: [0.2, 0, 0, 1] }}
+                transition={{ duration: 0.2, delay: i * 0.04, ease: EASE_OUT }}
                 className="flex items-center gap-3 px-4 py-3"
               >
                 <Check size={14} className="text-emerald-400 shrink-0" />
-                <p className="flex-1 text-sm text-[#f2f1ed]">{client.name}</p>
+                <p className="flex-1 text-sm text-[var(--app-text)]">{client.name}</p>
                 <span
                   className={`font-mono text-xs ${sessionBadgeClass(Number(remaining))}`}
                 >
@@ -170,7 +174,7 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
         <div className="flex gap-3">
           <button
             onClick={() => setConfirm(null)}
-            className="flex items-center gap-1.5 rounded-lg border border-[#3d3d3c] px-4 py-2.5 text-sm text-[#a3a29f] hover:border-[#5e5e5c] transition-colors"
+            className="flex items-center gap-1.5 rounded-lg border border-[var(--app-border)] px-4 py-2.5 text-sm text-[var(--app-tertiary)] hover:border-[var(--app-muted)] transition-colors"
           >
             <X size={14} />
             Back
@@ -178,7 +182,7 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
           <button
             onClick={handleConfirm}
             disabled={committing || matchedClients.length === 0}
-            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#f2f1ed] py-2.5 text-sm font-semibold text-[#141413] hover:bg-white disabled:opacity-50 transition-colors"
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[var(--app-text)] py-2.5 text-sm font-semibold text-[var(--app-text-inv)] hover:opacity-90 disabled:opacity-50 transition-colors"
           >
             {committing ? (
               <Loader2 size={14} className="animate-spin" />
@@ -190,29 +194,30 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
               : `Log ${matchedClients.length} session${matchedClients.length !== 1 ? "s" : ""}`}
           </button>
         </div>
-      </div>
+      </main>
     );
   }
 
   // ── Main log screen ───────────────────────────────────────────────────────
 
   return (
-    <div className="mx-auto max-w-lg px-4 pt-8 space-y-6">
+    <main id="main-content" className="mx-auto max-w-lg px-4 pt-8 space-y-6">
       <div>
-        <h1 className="font-heading text-2xl font-semibold tracking-tight text-[#f2f1ed]">
+        <h1 className="font-heading text-2xl font-semibold tracking-tight text-[var(--app-text)] text-wrap-balance">
           Log sessions
         </h1>
-        <p className="mt-1 text-sm text-[#a3a29f] text-pretty">
+        <p className="mt-1 text-sm text-[var(--app-tertiary)] text-pretty">
           Pick clients and date. For quick logging, use the chat on your dashboard.
         </p>
       </div>
 
       {/* Date */}
       <div>
-        <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
+        <label htmlFor="session-date" className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
           Date
         </label>
         <input
+          id="session-date"
           type="date"
           value={manualDate}
           onChange={(e) => setManualDate(e.target.value)}
@@ -222,13 +227,13 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
 
       {/* Client checkboxes */}
       <div>
-        <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
+        <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
           Clients ({selectedIds.size} selected)
         </label>
         {clients.length === 0 ? (
-          <p className="text-sm text-[#5e5e5c]">No clients yet.</p>
+          <p className="text-sm text-[var(--app-muted)]">No clients yet.</p>
         ) : (
-          <div className="divide-y divide-[#3d3d3c] rounded-xl border border-[#3d3d3c] bg-[#1e1e1d]">
+          <div className="divide-y divide-[var(--app-border)] rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)]">
             {clients.length > 8 && (
               <div className="px-4 py-2.5">
                 <input
@@ -236,7 +241,8 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search clients…"
-                  className="w-full bg-transparent text-sm text-[#f2f1ed] placeholder-[#5e5e5c] focus:outline-none"
+                  aria-label="Search clients"
+                  className="w-full bg-transparent text-sm text-[var(--app-text)] placeholder-[var(--app-muted)] focus:outline-none"
                 />
               </div>
             )}
@@ -247,23 +253,26 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
               return (
                 <button
                   key={client.id}
+                  role="checkbox"
+                  aria-checked={selected}
                   onClick={() => toggleClient(client.id)}
                   className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors first:rounded-t-xl last:rounded-b-xl ${
-                    selected ? "bg-[#262625]" : "hover:bg-[#1a1a19]"
+                    selected ? "bg-[var(--app-elevated)]" : "hover:bg-[var(--app-elevated)]"
                   }`}
                 >
                   <div
+                    aria-hidden="true"
                     className={`flex size-5 shrink-0 items-center justify-center rounded border transition-[background-color,border-color,transform] duration-150 ${
                       selected
-                        ? "border-[#f2f1ed] bg-[#f2f1ed] scale-110"
-                        : "border-[#3d3d3c] scale-100"
+                        ? "border-[var(--app-text)] bg-[var(--app-text)] scale-110"
+                        : "border-[var(--app-border)] scale-100"
                     }`}
                   >
                     {selected && (
-                      <Check size={11} className="text-[#141413]" />
+                      <Check size={11} className="text-[var(--app-text-inv)]" />
                     )}
                   </div>
-                  <p className="flex-1 text-sm text-[#f2f1ed]">
+                  <p className="flex-1 text-sm text-[var(--app-text)]">
                     {client.name}
                   </p>
                   <span
@@ -280,11 +289,12 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
 
       {/* Notes */}
       <div>
-        <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
+        <label htmlFor="session-notes" className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
           Notes{" "}
-          <span className="normal-case text-[#5e5e5c]">(optional)</span>
+          <span className="normal-case text-[var(--app-muted)]">(optional)</span>
         </label>
         <input
+          id="session-notes"
           type="text"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
@@ -297,14 +307,14 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
       <button
         onClick={handleManualContinue}
         disabled={selectedIds.size === 0}
-        className="w-full rounded-lg bg-[#f2f1ed] py-2.5 text-sm font-semibold text-[#141413] hover:bg-white disabled:opacity-40 transition-colors"
+        className="w-full rounded-lg bg-[var(--app-text)] py-2.5 text-sm font-semibold text-[var(--app-text-inv)] hover:opacity-90 disabled:opacity-40 transition-colors"
       >
         Review →
       </button>
 
       {/* Offline warning banner */}
       <OfflineBanner />
-    </div>
+    </main>
   );
 }
 
@@ -326,8 +336,8 @@ function OfflineBanner() {
   if (!offline) return null;
 
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3">
-      <AlertCircle size={14} className="text-amber-400 shrink-0" />
+    <div role="alert" aria-live="assertive" className="flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+      <AlertCircle size={14} className="text-amber-400 shrink-0" aria-hidden="true" />
       <p className="text-xs text-amber-300">
         You&apos;re offline — sessions will be saved and synced when reconnected.
       </p>

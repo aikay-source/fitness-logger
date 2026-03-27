@@ -15,14 +15,14 @@ export default async function ClientsPage() {
   });
 
   return (
-    <div className="mx-auto max-w-lg px-4 pt-8 space-y-6">
+    <main id="main-content" className="mx-auto max-w-lg px-4 pt-8 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
+          <p className="font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
             Your roster
           </p>
-          <h1 className="mt-1 font-heading text-2xl font-semibold tracking-tight text-[#f2f1ed] text-wrap-balance">
+          <h1 className="mt-1 font-heading text-2xl font-semibold tracking-tight text-[var(--app-text)] text-wrap-balance">
             Clients
           </h1>
         </div>
@@ -31,8 +31,8 @@ export default async function ClientsPage() {
 
       {/* Empty state */}
       {clients.length === 0 && (
-        <div className="rounded-xl border border-[#3d3d3c] bg-[#1e1e1d] p-10 text-center">
-          <p className="text-sm text-[#a3a29f]">No clients yet.</p>
+        <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-10 text-center">
+          <p className="text-sm text-[var(--app-tertiary)]">No clients yet.</p>
           <AddClientsModal existingNames={[]} triggerVariant="empty-state" />
         </div>
       )}
@@ -56,6 +56,6 @@ export default async function ClientsPage() {
           </div>
         </>
       )}
-    </div>
+    </main>
   );
 }

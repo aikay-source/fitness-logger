@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { AlertTriangle, DollarSign, Users, Zap } from "lucide-react";
 import DashboardClient from "./DashboardClient";
+import ThemeToggle from "@/components/ThemeToggle";
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -97,58 +98,61 @@ export default async function DashboardPage() {
   const mostActive = [...clientCounts.values()].sort((a, b) => b.count - a.count)[0] ?? null;
 
   return (
-    <div className="mx-auto max-w-lg space-y-6 px-4 pt-8">
+    <main id="main-content" className="mx-auto max-w-lg space-y-6 px-4 pt-8">
       {/* Greeting */}
       <div className="flex items-start justify-between">
         <div>
-          <p className="font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
+          <p className="font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
             {getGreeting()}
           </p>
-          <h1 className="mt-1 font-heading text-2xl font-semibold tracking-tight text-[#f2f1ed] text-wrap-balance">
+          <h1 className="mt-1 font-heading text-2xl font-semibold tracking-tight text-[var(--app-text)] text-wrap-balance">
             {firstName}.
           </h1>
         </div>
-        {streak >= 2 && (() => {
-          const milestone = [90, 60, 30, 14, 7].find((m) => streak >= m);
-          const isMilestone = milestone && streak === milestone;
-          return (
-            <div className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 ${
-              isMilestone
-                ? "border-amber-500/40 bg-amber-500/10"
-                : "border-[#3d3d3c] bg-[#1e1e1d]"
-            }`}>
-              <Zap size={11} className="text-amber-400 fill-amber-400 shrink-0" />
-              <span className="font-mono text-xs font-semibold tabular-nums text-[#f2f1ed]">
-                {streak}d
-              </span>
-            </div>
-          );
-        })()}
+        <div className="flex items-center gap-2">
+          {streak >= 2 && (() => {
+            const milestone = [90, 60, 30, 14, 7].find((m) => streak >= m);
+            const isMilestone = milestone && streak === milestone;
+            return (
+              <div className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 ${
+                isMilestone
+                  ? "border-amber-500/40 bg-amber-500/10"
+                  : "border-[var(--app-border)] bg-[var(--app-surface)]"
+              }`}>
+                <Zap size={11} className="text-amber-400 fill-amber-400 shrink-0" />
+                <span className="font-mono text-xs font-semibold tabular-nums text-[var(--app-text)]">
+                  {streak}d
+                </span>
+              </div>
+            );
+          })()}
+          <ThemeToggle />
+        </div>
       </div>
 
       {/* Getting started — shown only when coach has no clients */}
       {totalClients === 0 && (
         <section className="space-y-2">
-          <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
+          <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
             Get started
           </h2>
-          <div className="rounded-xl border border-[#3d3d3c] bg-[#1e1e1d] p-5 space-y-4">
+          <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 space-y-4">
             <div className="flex items-start gap-3">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#262625]">
-                <Users size={16} className="text-[#a3a29f]" />
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[var(--app-elevated)]">
+                <Users size={16} className="text-[var(--app-tertiary)]" />
               </div>
               <div>
-                <p className="text-sm font-medium text-[#f2f1ed]">
+                <p className="text-sm font-medium text-[var(--app-text)]">
                   Add your clients to start tracking sessions
                 </p>
-                <p className="mt-0.5 text-xs text-[#5e5e5c] text-pretty">
+                <p className="mt-0.5 text-xs text-[var(--app-muted)] text-pretty">
                   Add them one by one, or import a spreadsheet if you have an existing roster.
                 </p>
               </div>
             </div>
             <Link
               href="/clients"
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#f2f1ed] py-2.5 text-sm font-semibold text-[#141413] hover:bg-white active:scale-[0.98] transition-[background-color,transform]"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--app-text)] py-2.5 text-sm font-semibold text-[var(--app-text-inv)] hover:opacity-90 active:scale-[0.98] transition-[background-color,transform]"
             >
               <Users size={14} />
               Add clients
@@ -165,17 +169,17 @@ export default async function DashboardPage() {
       {/* Needs attention */}
       {(lowClients.length > 0 || unpaidClients.length > 0) && (
         <section className="space-y-2">
-          <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
+          <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
             Needs attention
           </h2>
-          <div className="divide-y divide-[#3d3d3c] rounded-xl border border-[#3d3d3c] bg-[#1e1e1d]">
+          <div className="divide-y divide-[var(--app-border)] rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)]">
             {lowClients.map((client) => {
               const critical = client.sessionsRemaining <= 1;
               return (
                 <Link
                   key={client.id}
                   href={`/clients/${client.id}`}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-[#262625] transition-[background-color,transform] active:scale-[0.98] first:rounded-t-xl last:rounded-b-xl"
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-[var(--app-elevated)] transition-[background-color,transform] active:scale-[0.98] first:rounded-t-xl last:rounded-b-xl"
                 >
                   <div className={`flex size-8 shrink-0 items-center justify-center rounded-full ${
                     critical ? "bg-red-500/10" : "bg-amber-500/10"
@@ -186,7 +190,7 @@ export default async function DashboardPage() {
                     />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="truncate text-sm font-medium text-[#f2f1ed]">
+                    <p className="truncate text-sm font-medium text-[var(--app-text)]">
                       {client.name}
                     </p>
                     <p className={`text-xs ${critical ? "text-red-400/50" : "text-amber-400/50"}`}>
@@ -212,13 +216,13 @@ export default async function DashboardPage() {
               <Link
                 key={client.id}
                 href={`/clients/${client.id}`}
-                className="flex items-center gap-3 px-4 py-3 hover:bg-[#262625] transition-[background-color,transform] active:scale-[0.98] first:rounded-t-xl last:rounded-b-xl"
+                className="flex items-center gap-3 px-4 py-3 hover:bg-[var(--app-elevated)] transition-[background-color,transform] active:scale-[0.98] first:rounded-t-xl last:rounded-b-xl"
               >
                 <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-orange-500/10">
                   <DollarSign size={14} className="text-orange-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="truncate text-sm font-medium text-[#f2f1ed]">
+                  <p className="truncate text-sm font-medium text-[var(--app-text)]">
                     {client.name}
                   </p>
                   <p className="text-xs text-orange-400/50">
@@ -241,24 +245,24 @@ export default async function DashboardPage() {
 
       {/* This month — hidden when no clients yet */}
       {totalClients > 0 && <section className="space-y-2">
-        <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
+        <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
           This month
         </h2>
-        <div className="rounded-xl border border-[#3d3d3c] bg-[#1e1e1d] p-4">
+        <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4">
           <div className="flex items-end justify-between">
             <div>
-              <p className="font-heading text-3xl font-semibold tabular-nums text-[#f2f1ed]">
+              <p className="font-heading text-3xl font-semibold tabular-nums text-[var(--app-text)]">
                 {monthSessions.length}
               </p>
-              <p className="mt-0.5 text-sm text-[#a3a29f]">sessions logged</p>
+              <p className="mt-0.5 text-sm text-[var(--app-tertiary)]">sessions logged</p>
             </div>
             {mostActive && (
               <div className="text-right">
-                <p className="text-xs text-[#5e5e5c]">most active</p>
-                <p className="max-w-[140px] truncate text-sm font-medium text-[#f2f1ed]">
+                <p className="text-xs text-[var(--app-muted)]">most active</p>
+                <p className="max-w-[140px] truncate text-sm font-medium text-[var(--app-text)]">
                   {mostActive.name}
                 </p>
-                <p className="font-mono text-xs tabular-nums text-[#5e5e5c]">
+                <p className="font-mono text-xs tabular-nums text-[var(--app-muted)]">
                   {mostActive.count} session{mostActive.count !== 1 ? "s" : ""}
                 </p>
               </div>
@@ -266,7 +270,7 @@ export default async function DashboardPage() {
           </div>
           <Link
             href="/reports"
-            className="relative mt-3 inline-block font-mono text-xs text-[#5e5e5c] hover:text-[#a3a29f] active:scale-[0.96] transition-[color,transform] before:absolute before:inset-[-8px] before:content-['']"
+            className="relative mt-3 inline-block font-mono text-xs text-[var(--app-muted)] hover:text-[var(--app-tertiary)] active:scale-[0.96] transition-[color,transform] before:absolute before:inset-[-8px] before:content-['']"
           >
             View full report →
           </Link>
@@ -276,20 +280,20 @@ export default async function DashboardPage() {
       {/* Recent activity */}
       {recentSessions.length > 0 && (
         <section className="space-y-2">
-          <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
+          <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
             Recent sessions
           </h2>
-          <div className="divide-y divide-[#3d3d3c] rounded-xl border border-[#3d3d3c] bg-[#1e1e1d]">
+          <div className="divide-y divide-[var(--app-border)] rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)]">
             {recentSessions.map((s) => (
               <div
                 key={s.id}
                 className="flex items-center gap-3 px-4 py-3"
               >
-                <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#3d3d3c] font-mono text-[10px] font-semibold text-[#a3a29f]">
+                <div aria-hidden="true" className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[var(--app-border)] font-mono text-[10px] font-semibold text-[var(--app-tertiary)]">
                   {s.client.name.split(" ").filter(Boolean).map((n) => n[0]).join("").slice(0, 2).toUpperCase() || "?"}
                 </div>
-                <p className="flex-1 truncate text-sm text-[#f2f1ed]">{s.client.name}</p>
-                <p className="font-mono text-xs text-[#5e5e5c]">
+                <p className="flex-1 truncate text-sm text-[var(--app-text)]">{s.client.name}</p>
+                <p className="font-mono text-xs text-[var(--app-muted)]">
                   {new Date(s.date).toLocaleDateString("en-GB", {
                     day: "numeric",
                     month: "short",
@@ -300,6 +304,6 @@ export default async function DashboardPage() {
           </div>
         </section>
       )}
-    </div>
+    </main>
   );
 }

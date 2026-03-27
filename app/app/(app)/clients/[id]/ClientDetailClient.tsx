@@ -72,22 +72,22 @@ export default function ClientDetailClient({ client }: { client: Client }) {
   }
 
   const inputClass =
-    "w-full rounded-lg border border-[#3d3d3c] bg-[#141413] px-3 py-1.5 text-sm text-[#f2f1ed] focus:border-[#a3a29f] focus:outline-none transition-colors";
+    "w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-1.5 text-sm text-[var(--app-text)] focus:border-[var(--app-tertiary)] focus:outline-none transition-colors";
 
   return (
     <>
       {/* Unpaid sessions card */}
       {unpaid > 0 && (
         <section className="space-y-2">
-          <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
+          <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
             Unpaid sessions
           </h2>
-          <div className="rounded-xl border border-[#3d3d3c] border-l-2 border-l-orange-500 bg-[#1e1e1d] p-4 overflow-hidden">
+          <div className="rounded-xl border border-[var(--app-border)] border-l-2 border-l-orange-500 bg-[var(--app-surface)] p-4 overflow-hidden">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <DollarSign size={16} className="text-orange-400 shrink-0" />
                 <div>
-                  <p className="text-sm font-medium text-[#f2f1ed]">
+                  <p className="text-sm font-medium text-[var(--app-text)]">
                     {unpaid} session{unpaid !== 1 ? "s" : ""} owed
                   </p>
                   <p className="text-xs text-orange-400/60">
@@ -98,12 +98,13 @@ export default function ClientDetailClient({ client }: { client: Client }) {
               <button
                 onClick={markSettled}
                 disabled={settling}
-                className="rounded-lg border border-[#3d3d3c] bg-[#262625] px-3 py-1.5 font-mono text-xs font-semibold text-[#a3a29f] hover:border-[#5e5e5c] hover:text-[#f2f1ed] disabled:opacity-50 transition-colors"
+                aria-busy={settling}
+                className="rounded-lg border border-[var(--app-border)] bg-[var(--app-elevated)] px-3 py-1.5 font-mono text-xs font-semibold text-[var(--app-tertiary)] hover:border-[var(--app-muted)] hover:text-[var(--app-text)] disabled:opacity-50 transition-colors"
               >
                 {settling ? "…" : "Mark settled"}
               </button>
             </div>
-            <p className="mt-2 text-xs text-[#5e5e5c]">
+            <p className="mt-2 text-xs text-[var(--app-muted)]">
               Settling clears the balance — use this after the client pays for their owed sessions.
             </p>
           </div>
@@ -113,13 +114,13 @@ export default function ClientDetailClient({ client }: { client: Client }) {
       {/* Package card */}
       <section className="space-y-2">
         <div className="flex items-center justify-between">
-          <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
+          <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
             Package
           </h2>
           {!editing && (
             <button
               onClick={() => setEditing(true)}
-              className="flex items-center gap-1 font-mono text-xs text-[#5e5e5c] hover:text-[#a3a29f] transition-colors"
+              className="flex items-center gap-1 font-mono text-xs text-[var(--app-muted)] hover:text-[var(--app-tertiary)] transition-colors"
             >
               <Pencil size={11} />
               Edit
@@ -129,7 +130,7 @@ export default function ClientDetailClient({ client }: { client: Client }) {
             <div className="flex items-center gap-2">
               <button
                 onClick={cancel}
-                className="flex items-center gap-1 font-mono text-xs text-[#5e5e5c] hover:text-[#a3a29f] transition-colors"
+                className="flex items-center gap-1 font-mono text-xs text-[var(--app-muted)] hover:text-[var(--app-tertiary)] transition-colors"
               >
                 <X size={11} />
                 Cancel
@@ -146,24 +147,31 @@ export default function ClientDetailClient({ client }: { client: Client }) {
           )}
         </div>
 
-        <div className="rounded-xl border border-[#3d3d3c] bg-[#1e1e1d] p-4 space-y-4">
+        <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 space-y-4">
           {!editing ? (
             <>
               <div className="flex items-center gap-4">
                 <PackageRing remaining={remaining} total={purchased} />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-[#f2f1ed]">
+                  <p className="text-sm font-medium text-[var(--app-text)]">
                     {remaining} of {purchased} remaining
                   </p>
-                  <p className="mt-0.5 font-mono text-xs text-[#5e5e5c]">
+                  <p className="mt-0.5 font-mono text-xs text-[var(--app-muted)]">
                     {percentUsed}% used
                   </p>
                 </div>
               </div>
 
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#3d3d3c]">
+              <div
+                role="progressbar"
+                aria-valuenow={percentUsed}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`Package usage: ${percentUsed}% used`}
+                className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--app-border)]"
+              >
                 <div
-                  className="h-full rounded-full bg-[#f2f1ed] transition-all"
+                  className="h-full rounded-full bg-[var(--app-text)] transition-all"
                   style={{ width: `${percentUsed}%` }}
                 />
               </div>
@@ -172,10 +180,11 @@ export default function ClientDetailClient({ client }: { client: Client }) {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
+                  <label htmlFor="pkg-sessions-bought" className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
                     Sessions bought
                   </label>
                   <input
+                    id="pkg-sessions-bought"
                     type="number"
                     min="0"
                     max="9999"
@@ -185,10 +194,11 @@ export default function ClientDetailClient({ client }: { client: Client }) {
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
+                  <label htmlFor="pkg-sessions-left" className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
                     Sessions left
                   </label>
                   <input
+                    id="pkg-sessions-left"
                     type="number"
                     min="0"
                     max="9999"
@@ -203,10 +213,11 @@ export default function ClientDetailClient({ client }: { client: Client }) {
               </div>
               {remaining === 0 && (
                 <div>
-                  <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[#a3a29f]">
+                  <label htmlFor="pkg-unpaid-sessions" className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
                     Unpaid sessions
                   </label>
                   <input
+                    id="pkg-unpaid-sessions"
                     type="number"
                     min="0"
                     max="9999"

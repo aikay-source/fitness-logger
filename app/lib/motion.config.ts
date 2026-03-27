@@ -1,5 +1,11 @@
 import type { Transition } from "framer-motion";
 
+/** Strong ease-out — starts fast, settles gently */
+export const EASE_OUT: [number, number, number, number] = [0.23, 1, 0.32, 1];
+
+/** Strong ease-in-out — natural acceleration/deceleration */
+export const EASE_IN_OUT: [number, number, number, number] = [0.77, 0, 0.175, 1];
+
 /** Snappy spring — buttons, cards, interactive presses */
 export const spring: Transition = {
   type: "spring",
@@ -17,7 +23,7 @@ export const softSpring: Transition = {
 /** Quick ease-out — number rolls, short fades */
 export const easeOut: Transition = {
   duration: 0.18,
-  ease: "easeOut",
+  ease: EASE_OUT,
 };
 
 /** Stagger container variants */
@@ -32,6 +38,6 @@ export const staggerContainer = {
 
 /** Stagger child — slide up + fade in */
 export const staggerItem = {
-  hidden: { y: 8, opacity: 0 },
-  show: { y: 0, opacity: 1, transition: easeOut },
+  hidden: { opacity: 0, y: 8 },
+  show: { opacity: 1, y: 0, transition: easeOut },
 };
