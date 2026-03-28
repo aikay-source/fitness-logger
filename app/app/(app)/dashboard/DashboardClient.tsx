@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Loader2, CheckCircle2, AlertTriangle, MessageCircle } from "lucide-react";
 import confetti from "canvas-confetti";
-import { EASE_OUT } from "@/lib/motion.config";
+import { EASE_OUT, EASE_IN } from "@/lib/motion.config";
 import type { ChatResponse } from "@/app/api/ai/chat/route";
 
 type Message =
@@ -107,9 +107,9 @@ export default function DashboardClient({ clientNames = [] }: { clientNames?: st
               {messages.map((msg) => (
                 <motion.div
                   key={msg.id}
-                  initial={{ transform: "translateY(8px)", opacity: 0 }}
+                  initial={{ transform: "translateY(6px)", opacity: 0 }}
                   animate={{ transform: "translateY(0px)", opacity: 1 }}
-                  exit={{ transform: "translateY(-4px)", opacity: 0, pointerEvents: "none" as const }}
+                  exit={{ transform: "translateY(-6px)", opacity: 0, pointerEvents: "none" as const, transition: { duration: 0.15, ease: EASE_IN } }}
                   transition={{ duration: 0.2, ease }}
                 >
                   {msg.role === "user" ? (

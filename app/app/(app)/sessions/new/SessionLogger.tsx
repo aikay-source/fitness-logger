@@ -182,7 +182,7 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
           <button
             onClick={handleConfirm}
             disabled={committing || matchedClients.length === 0}
-            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[var(--app-text)] py-2.5 text-sm font-semibold text-[var(--app-text-inv)] hover:opacity-90 disabled:opacity-50 transition-colors"
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[var(--app-text)] py-2.5 text-sm font-semibold text-[var(--app-text-inv)] hover:opacity-90 active:scale-[0.97] disabled:opacity-50 transition-[opacity,transform]"
           >
             {committing ? (
               <Loader2 size={14} className="animate-spin" />
@@ -307,7 +307,7 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
       <button
         onClick={handleManualContinue}
         disabled={selectedIds.size === 0}
-        className="w-full rounded-lg bg-[var(--app-text)] py-2.5 text-sm font-semibold text-[var(--app-text-inv)] hover:opacity-90 disabled:opacity-40 transition-colors"
+        className="w-full rounded-lg bg-[var(--app-text)] py-2.5 text-sm font-semibold text-[var(--app-text-inv)] hover:opacity-90 active:scale-[0.97] disabled:opacity-40 transition-[opacity,transform]"
       >
         Review →
       </button>

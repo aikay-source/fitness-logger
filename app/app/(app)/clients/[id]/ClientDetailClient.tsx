@@ -120,7 +120,7 @@ export default function ClientDetailClient({ client }: { client: Client }) {
           {!editing && (
             <button
               onClick={() => setEditing(true)}
-              className="flex items-center gap-1 font-mono text-xs text-[var(--app-muted)] hover:text-[var(--app-tertiary)] transition-colors"
+              className="relative flex items-center gap-1 font-mono text-xs text-[var(--app-muted)] hover:text-[var(--app-tertiary)] transition-colors before:absolute before:inset-[-6px] before:content-['']"
             >
               <Pencil size={11} />
               Edit
@@ -130,7 +130,7 @@ export default function ClientDetailClient({ client }: { client: Client }) {
             <div className="flex items-center gap-2">
               <button
                 onClick={cancel}
-                className="flex items-center gap-1 font-mono text-xs text-[var(--app-muted)] hover:text-[var(--app-tertiary)] transition-colors"
+                className="relative flex items-center gap-1 font-mono text-xs text-[var(--app-muted)] hover:text-[var(--app-tertiary)] transition-colors before:absolute before:inset-[-6px] before:content-['']"
               >
                 <X size={11} />
                 Cancel
@@ -138,7 +138,7 @@ export default function ClientDetailClient({ client }: { client: Client }) {
               <button
                 onClick={save}
                 disabled={saving}
-                className="flex items-center gap-1 font-mono text-xs text-emerald-400 hover:text-emerald-300 transition-colors disabled:opacity-50"
+                className="relative flex items-center gap-1 font-mono text-xs text-emerald-400 hover:text-emerald-300 transition-colors disabled:opacity-50 before:absolute before:inset-[-6px] before:content-['']"
               >
                 <Check size={11} />
                 {saving ? "Saving…" : "Save"}

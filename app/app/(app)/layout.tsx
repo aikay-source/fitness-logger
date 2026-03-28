@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import OfflineSyncProvider from "@/components/OfflineSyncProvider";
+import MotionProvider from "@/components/MotionProvider";
 
 export default async function AppLayout({
   children,
@@ -13,10 +14,12 @@ export default async function AppLayout({
   if (!session) redirect("/login");
 
   return (
-    <div className="flex min-h-svh flex-col">
-      <OfflineSyncProvider />
-      <main className="flex-1 pb-24">{children}</main>
-      <BottomNav />
-    </div>
+    <MotionProvider>
+      <div className="flex min-h-svh flex-col">
+        <OfflineSyncProvider />
+        <main className="flex-1 pb-24">{children}</main>
+        <BottomNav />
+      </div>
+    </MotionProvider>
   );
 }

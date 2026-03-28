@@ -64,7 +64,7 @@ export default function PackageRing({
           strokeDasharray={CIRCUMFERENCE}
           initial={{ strokeDashoffset: CIRCUMFERENCE }}
           animate={{ strokeDashoffset: offset }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
         />
       </svg>
       <span aria-hidden="true" className="absolute font-mono text-[10px] font-semibold tabular-nums text-[var(--app-text)]">
