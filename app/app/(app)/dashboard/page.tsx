@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { AlertTriangle, DollarSign, Users, Zap } from "lucide-react";
 import DashboardClient from "./DashboardClient";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -40,7 +41,8 @@ function calcStreak(sessionDates: Date[]): number {
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
-  const coachId = session!.user.id;
+  if (!session) redirect("/login");
+  const coachId = session.user.id;
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -85,7 +87,7 @@ export default async function DashboardPage() {
       }),
     ]);
 
-  const firstName = session!.user.name?.split(" ")[0] ?? "Coach";
+  const firstName = session.user.name?.split(" ")[0] ?? "Coach";
   const streak = calcStreak(streakSessions.map((s) => s.date));
 
   // Most active client this month

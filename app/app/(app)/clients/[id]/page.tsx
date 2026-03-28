@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import ClientDetailClient from "./ClientDetailClient";
 import DeleteClientButton from "./DeleteClientButton";
@@ -19,7 +19,8 @@ export default async function ClientDetailPage({
 }) {
   const { id } = await params;
   const session = await getServerSession(authOptions);
-  const coachId = session!.user.id;
+  if (!session) redirect("/login");
+  const coachId = session.user.id;
 
   const client = await prisma.client.findFirst({
     where: { id, coachId },

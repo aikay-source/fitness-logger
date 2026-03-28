@@ -1,13 +1,15 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 import DeleteAllButton from "./DeleteAllButton";
 import AddClientsModal from "./AddClientsModal";
 import ClientListFilter from "./ClientListFilter";
 
 export default async function ClientsPage() {
   const session = await getServerSession(authOptions);
-  const coachId = session!.user.id;
+  if (!session) redirect("/login");
+  const coachId = session.user.id;
 
   const clients = await prisma.client.findMany({
     where: { coachId, active: true },
