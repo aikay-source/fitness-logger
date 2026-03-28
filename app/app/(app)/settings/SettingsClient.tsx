@@ -218,21 +218,6 @@ export default function SettingsClient({
         </div>
       </section>
 
-      {/* Onboarding shortcut */}
-      <section className="space-y-2">
-        <p className={labelClass}>Setup</p>
-        <div className={sectionClass}>
-          <div className={rowClass}>
-            <p className="text-sm text-[var(--app-text)]">Re-run onboarding</p>
-            <a
-              href="/onboarding"
-              className="rounded-lg border border-[var(--app-border)] px-3 py-1 font-mono text-xs text-[var(--app-tertiary)] hover:border-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors"
-            >
-              Open
-            </a>
-          </div>
-        </div>
-      </section>
     </main>
   );
 }
