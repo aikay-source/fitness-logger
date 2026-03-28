@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendPushToUser } from "@/lib/send-push";
-
-function verifyCron(req: Request) {
-  return req.headers.get("authorization") === `Bearer ${process.env.CRON_SECRET}`;
-}
+import { verifyCron } from "@/lib/cron";
 
 export async function GET(req: Request) {
   if (!verifyCron(req)) return new NextResponse("Unauthorized", { status: 401 });

@@ -11,8 +11,6 @@ type Message =
   | { role: "user"; text: string; id: number }
   | { role: "assistant"; response: ChatResponse; id: number };
 
-let msgId = 0;
-
 const ease = EASE_OUT as [number, number, number, number];
 
 function buildSuggestions(names: string[]): string[] {
@@ -37,6 +35,7 @@ export default function DashboardClient({ clientNames = [] }: { clientNames?: st
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const msgIdRef = useRef(0);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -56,7 +55,7 @@ export default function DashboardClient({ clientNames = [] }: { clientNames?: st
     const trimmed = text.trim();
     if (!trimmed || loading) return;
 
-    const newUserMsg: Message = { role: "user", text: trimmed, id: ++msgId };
+    const newUserMsg: Message = { role: "user", text: trimmed, id: ++msgIdRef.current };
     const updatedMessages = [...messages, newUserMsg];
     setMessages(updatedMessages);
     setInput("");
@@ -75,11 +74,11 @@ export default function DashboardClient({ clientNames = [] }: { clientNames?: st
         body: JSON.stringify({ message: trimmed, history: history.slice(0, -1) }),
       });
       const data = (await res.json()) as ChatResponse;
-      setMessages((prev) => [...prev, { role: "assistant", response: data, id: ++msgId }]);
+      setMessages((prev) => [...prev, { role: "assistant", response: data, id: ++msgIdRef.current }]);
     } catch {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", response: { type: "error", message: "Network error. Please try again." }, id: ++msgId },
+        { role: "assistant", response: { type: "error", message: "Network error. Please try again." }, id: ++msgIdRef.current },
       ]);
     } finally {
       setLoading(false);
@@ -195,8 +194,10 @@ export default function DashboardClient({ clientNames = [] }: { clientNames?: st
 }
 
 function AssistantBubble({ response }: { response: ChatResponse }) {
+  const confettiFired = useRef(false);
   useEffect(() => {
-    if (response.type === "logged") {
+    if (response.type === "logged" && !confettiFired.current) {
+      confettiFired.current = true;
       confetti({
         particleCount: 40,
         spread: 50,
@@ -208,7 +209,7 @@ function AssistantBubble({ response }: { response: ChatResponse }) {
         disableForReducedMotion: true,
       });
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [response.type]);
 
   if (response.type === "logged") {
     return (

@@ -13,8 +13,15 @@ export async function PATCH(
   if (!session) return new NextResponse("Unauthorized", { status: 401 });
 
   const { id } = await params;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let body: any;
+  type ClientPatchBody = {
+    name?: string;
+    phone?: string | null;
+    totalSessionsPurchased?: number;
+    sessionsRemaining?: number;
+    active?: boolean;
+    unpaidSessions?: number;
+  };
+  let body: ClientPatchBody;
   try {
     body = await req.json();
   } catch {

@@ -78,7 +78,8 @@ function normalizeDateToISO(raw: string, order: "mdy" | "dmy" = "mdy"): string |
   // Already ISO: 2024-09-03 or 2024-9-3
   const isoMatch = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
   if (isoMatch) {
-    const [, y, m, d] = isoMatch.map(Number);
+    const [, yStr, mStr, dStr] = isoMatch;
+    const y = Number(yStr), m = Number(mStr), d = Number(dStr);
     return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
   }
 
@@ -312,6 +313,21 @@ Rules:
   }
 }
 
+// ─── Shared: normalize raw AI client output ───────────────────────────────────
+
+type RawClient = { name?: string; totalSessionsPurchased?: unknown; sessionsRemaining?: unknown; unpaidSessions?: unknown };
+
+function normalizeClients(raw: unknown): { name: string; totalSessionsPurchased: number; sessionsRemaining: number; unpaidSessions: number }[] {
+  return (Array.isArray(raw) ? raw as RawClient[] : [])
+    .filter((c) => c.name?.trim())
+    .map((c) => ({
+      name: c.name!.trim(),
+      totalSessionsPurchased: Math.max(0, Number(c.totalSessionsPurchased) || 0),
+      sessionsRemaining: Math.max(0, Number(c.sessionsRemaining) || 0),
+      unpaidSessions: Math.max(0, Number(c.unpaidSessions) || 0),
+    }));
+}
+
 // ─── Session-grid: cells like "Kate9/11", "Lulu3/u", "Philip" ────────────────
 // Aggregates all entries per client and returns final client state.
 
@@ -368,17 +384,8 @@ Return ONLY valid JSON:
     const raw = completion.choices[0]?.message?.content ?? '{"clients":[]}';
     console.log("[parse-spreadsheet] AI response:", raw.slice(0, 800));
 
-    const parsed = JSON.parse(raw) as { clients: { name: string; totalSessionsPurchased: number; sessionsRemaining: number; unpaidSessions: number }[] };
-
-    const clients = (Array.isArray(parsed.clients) ? parsed.clients : [])
-      .filter((c) => c.name?.trim())
-      .map((c) => ({
-        name: c.name.trim(),
-        totalSessionsPurchased: Math.max(0, Number(c.totalSessionsPurchased) || 0),
-        sessionsRemaining: Math.max(0, Number(c.sessionsRemaining) || 0),
-        unpaidSessions: Math.max(0, Number(c.unpaidSessions) || 0),
-      }));
-
+    const parsed = JSON.parse(raw) as { clients: unknown };
+    const clients = normalizeClients(parsed.clients);
     return NextResponse.json({ format: "client-roster", clients });
   } catch (err) {
     console.error("[parse-spreadsheet] Groq error:", err);
@@ -420,17 +427,8 @@ Return ONLY valid JSON:
     });
 
     const raw = completion.choices[0]?.message?.content ?? '{"clients":[]}';
-    const parsed = JSON.parse(raw) as { clients: { name: string; totalSessionsPurchased: number; sessionsRemaining: number; unpaidSessions: number }[] };
-
-    const clients = (Array.isArray(parsed.clients) ? parsed.clients : [])
-      .filter((c) => c.name?.trim())
-      .map((c) => ({
-        name: c.name.trim(),
-        totalSessionsPurchased: Math.max(0, Number(c.totalSessionsPurchased) || 0),
-        sessionsRemaining: Math.max(0, Number(c.sessionsRemaining) || 0),
-        unpaidSessions: Math.max(0, Number(c.unpaidSessions) || 0),
-      }));
-
+    const parsed = JSON.parse(raw) as { clients: unknown };
+    const clients = normalizeClients(parsed.clients);
     return NextResponse.json({ format: "client-roster", clients });
   } catch (err) {
     console.error("[parse-spreadsheet] Groq error:", err);
