@@ -6,9 +6,9 @@ import { SALT_ROUNDS } from "@/lib/auth";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
-  const { email, password } = await request.json();
+  const { email: rawEmail, password } = await request.json();
 
-  if (!email || !password) {
+  if (!rawEmail || !password) {
     return NextResponse.json({ error: "Email and password are required." }, { status: 400 });
   }
 
@@ -16,6 +16,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Password must be at least 8 characters." }, { status: 400 });
   }
 
+  const email = rawEmail.toLowerCase();
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     return NextResponse.json({ error: "An account with that email already exists." }, { status: 409 });

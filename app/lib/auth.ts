@@ -23,7 +23,7 @@ export const authOptions: NextAuthOptions = {
 
         try {
           const user = await prisma.user.findUnique({
-            where: { email: credentials.email },
+            where: { email: credentials.email.toLowerCase() },
           });
 
           if (!user || !user.password) return null;
@@ -54,12 +54,14 @@ export const authOptions: NextAuthOptions = {
         // NextAuth also populates `user` on OAuth sign-ins (with the Google
         // sub ID, not the DB ID), so we'd store the wrong ID without this
         // early-return branch.
-        let dbUser = await prisma.user.findUnique({ where: { email: profile.email } });
+        // Normalize to lowercase to avoid duplicate accounts from case differences.
+        const email = profile.email.toLowerCase();
+        let dbUser = await prisma.user.findUnique({ where: { email } });
         if (!dbUser) {
           dbUser = await prisma.user.create({
             data: {
-              email: profile.email,
-              name: (profile as { name?: string }).name ?? profile.email.split("@")[0],
+              email,
+              name: (profile as { name?: string }).name ?? email.split("@")[0],
             },
           });
         }
