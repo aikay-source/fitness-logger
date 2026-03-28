@@ -27,8 +27,12 @@ export default function LoginPage() {
 
     setLoading(false);
 
-    if (result?.error) {
-      toast.error("Could not sign in. Please try again.");
+    if (result?.error === "GOOGLE_ACCOUNT") {
+      toast.error("This email is registered via Google. Use 'Continue with Google' to sign in.");
+    } else if (result?.error === "RATE_LIMITED") {
+      toast.error("Too many login attempts. Please try again later.");
+    } else if (result?.error) {
+      toast.error("Invalid email or password.");
     } else {
       router.push("/");
       router.refresh();
