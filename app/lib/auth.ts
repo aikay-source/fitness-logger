@@ -1,6 +1,9 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+
+const SALT_ROUNDS = 12;
 
 export const authOptions: NextAuthOptions = {
   // No database adapter needed for credentials — session stored as JWT
@@ -14,21 +17,28 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        // DEV ONLY: auto-create user on first login
-        let user = await prisma.user.findUnique({
+        const user = await prisma.user.findUnique({
           where: { email: credentials.email },
         });
 
         if (!user) {
-          user = await prisma.user.create({
+          // First-time registration: create user with hashed password
+          const hashedPassword = await bcrypt.hash(credentials.password, SALT_ROUNDS);
+          const newUser = await prisma.user.create({
             data: {
               email: credentials.email,
               name: credentials.email.split("@")[0],
+              password: hashedPassword,
             },
           });
+          return { id: newUser.id, email: newUser.email, name: newUser.name };
         }
 
-        // Dev shortcut: any password works — swap for bcrypt before going live
+        if (!user.password) return null;
+
+        const valid = await bcrypt.compare(credentials.password, user.password);
+        if (!valid) return null;
+
         return { id: user.id, email: user.email, name: user.name };
       },
     }),
