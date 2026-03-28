@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { SALT_ROUNDS } from "@/lib/auth";
 import { registerLimiter, checkRateLimit } from "@/lib/rate-limit";
-import { PrismaClientKnownRequestError } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     // Handle race condition: another request created the same email between
     // our findUnique check and this create call.
-    if (error instanceof PrismaClientKnownRequestError && error.code === "P2002") {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return NextResponse.json({ error: "An account with that email already exists." }, { status: 409 });
     }
     throw error;
