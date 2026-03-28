@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { Users } from "lucide-react";
 import DeleteAllButton from "./DeleteAllButton";
 import AddClientsModal from "./AddClientsModal";
 import ClientListFilter from "./ClientListFilter";
@@ -21,7 +22,7 @@ export default async function ClientsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
+          <p className="font-sans text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
             Your roster
           </p>
           <h1 className="mt-1 font-heading text-2xl font-semibold tracking-tight text-[var(--app-text)] text-wrap-balance">
@@ -33,8 +34,16 @@ export default async function ClientsPage() {
 
       {/* Empty state */}
       {clients.length === 0 && (
-        <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-10 text-center">
-          <p className="text-sm text-[var(--app-tertiary)]">No clients yet.</p>
+        <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] px-6 py-12 text-center space-y-4">
+          <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-[var(--app-elevated)]">
+            <Users size={20} className="text-[var(--app-tertiary)]" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-[var(--app-text)]">No clients yet</p>
+            <p className="text-xs text-[var(--app-muted)] text-pretty max-w-xs mx-auto">
+              Add clients one by one, or import a spreadsheet if you have an existing roster.
+            </p>
+          </div>
           <AddClientsModal existingNames={[]} triggerVariant="empty-state" />
         </div>
       )}

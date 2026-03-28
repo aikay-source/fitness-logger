@@ -52,6 +52,7 @@
   --app-tertiary: #6b6b6f;
   --app-text: #141413;
   --app-text-inv: #ffffff;
+  --app-accent: #0891b2;
 
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -91,6 +92,7 @@
   --app-tertiary: #a3a29f;
   --app-text: #f2f1ed;
   --app-text-inv: #141413;
+  --app-accent: #22d3ee;
 
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);

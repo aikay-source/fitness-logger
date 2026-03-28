@@ -82,6 +82,7 @@ export default function ClientListFilter({ clients }: { clients: ClientItem[] })
               </span>
             )}
             <span
+              aria-label={`${client.sessionsRemaining} sessions remaining${client.sessionsRemaining <= 2 ? " — critical" : client.sessionsRemaining <= 5 ? " — low" : ""}`}
               className={`rounded-full px-2.5 py-0.5 font-mono text-xs font-semibold tabular-nums ${sessionBadgeClass(client.sessionsRemaining)}`}
             >
               {client.sessionsRemaining}

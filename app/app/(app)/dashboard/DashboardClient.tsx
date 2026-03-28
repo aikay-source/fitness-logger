@@ -95,11 +95,11 @@ export default function DashboardClient({ clientNames = [] }: { clientNames?: st
 
   return (
     <section className="space-y-2">
-      <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)] text-wrap-balance">
+      <h2 className="font-sans text-xs font-semibold uppercase tracking-widest text-[var(--app-accent)] text-wrap-balance">
         Quick log
       </h2>
 
-      <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] overflow-hidden">
+      <div className="rounded-xl border border-[var(--app-accent)]/20 bg-[var(--app-surface)] overflow-hidden">
         {/* Message history */}
         {messages.length > 0 && (
           <div ref={chatContainerRef} role="log" aria-live="polite" aria-atomic="false" aria-label="Chat messages" className="max-h-72 overflow-y-auto px-4 py-3 space-y-3">

@@ -104,7 +104,7 @@ export default async function DashboardPage() {
       {/* Greeting */}
       <div className="flex items-start justify-between">
         <div>
-          <p className="font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
+          <p className="font-sans text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
             {getGreeting()}
           </p>
           <h1 className="mt-1 font-heading text-2xl font-semibold tracking-tight text-[var(--app-text)] text-wrap-balance">
@@ -118,10 +118,10 @@ export default async function DashboardPage() {
             return (
               <div className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 ${
                 isMilestone
-                  ? "border-amber-500/40 bg-amber-500/10"
+                  ? "border-[var(--app-accent)]/40 bg-[var(--app-accent)]/10"
                   : "border-[var(--app-border)] bg-[var(--app-surface)]"
               }`}>
-                <Zap size={11} className="text-amber-400 fill-amber-400 shrink-0" />
+                <Zap size={11} className="text-[var(--app-accent)] fill-[var(--app-accent)] shrink-0" />
                 <span className="font-mono text-xs font-semibold tabular-nums text-[var(--app-text)]">
                   {streak}d
                 </span>
@@ -135,7 +135,7 @@ export default async function DashboardPage() {
       {/* Getting started — shown only when coach has no clients */}
       {totalClients === 0 && (
         <section className="space-y-2">
-          <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
+          <h2 className="font-sans text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
             Get started
           </h2>
           <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 space-y-4">
@@ -154,7 +154,7 @@ export default async function DashboardPage() {
             </div>
             <Link
               href="/clients"
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--app-text)] py-2.5 text-sm font-semibold text-[var(--app-text-inv)] hover:opacity-90 active:scale-[0.98] transition-[background-color,transform]"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--app-accent)] py-2.5 text-sm font-semibold text-white hover:opacity-90 active:scale-[0.98] transition-[background-color,transform]"
             >
               <Users size={14} />
               Add clients
@@ -171,7 +171,7 @@ export default async function DashboardPage() {
       {/* Needs attention */}
       {(lowClients.length > 0 || unpaidClients.length > 0) && (
         <section className="space-y-2">
-          <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
+          <h2 className="font-sans text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
             Needs attention
           </h2>
           <div className="divide-y divide-[var(--app-border)] rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)]">
@@ -247,7 +247,7 @@ export default async function DashboardPage() {
 
       {/* This month — hidden when no clients yet */}
       {totalClients > 0 && <section className="space-y-2">
-        <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
+        <h2 className="font-sans text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
           This month
         </h2>
         <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4">
@@ -282,7 +282,7 @@ export default async function DashboardPage() {
       {/* Recent activity */}
       {recentSessions.length > 0 && (
         <section className="space-y-2">
-          <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
+          <h2 className="font-sans text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
             Recent sessions
           </h2>
           <div className="divide-y divide-[var(--app-border)] rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)]">

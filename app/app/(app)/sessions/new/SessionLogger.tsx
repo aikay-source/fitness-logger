@@ -134,6 +134,7 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
     return (
       <main id="main-content" className="mx-auto max-w-lg px-4 pt-8 space-y-6">
         <div>
+          <p className="font-mono text-xs text-[var(--app-muted)] mb-1">Step 2 of 2</p>
           <h1 className="font-heading text-2xl font-semibold tracking-tight text-[var(--app-text)] text-wrap-balance">
             Confirm session
           </h1>
@@ -203,6 +204,7 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
   return (
     <main id="main-content" className="mx-auto max-w-lg px-4 pt-8 space-y-6">
       <div>
+        <p className="font-mono text-xs text-[var(--app-muted)] mb-1">Step 1 of 2</p>
         <h1 className="font-heading text-2xl font-semibold tracking-tight text-[var(--app-text)] text-wrap-balance">
           Log sessions
         </h1>
@@ -213,7 +215,7 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
 
       {/* Date */}
       <div>
-        <label htmlFor="session-date" className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
+        <label htmlFor="session-date" className="mb-1.5 block font-sans text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
           Date
         </label>
         <input
@@ -227,7 +229,7 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
 
       {/* Client checkboxes */}
       <div>
-        <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
+        <label className="mb-1.5 block font-sans text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
           Clients ({selectedIds.size} selected)
         </label>
         {clients.length === 0 ? (
@@ -251,15 +253,19 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
               .map((client) => {
               const selected = selectedIds.has(client.id);
               return (
-                <button
+                <label
                   key={client.id}
-                  role="checkbox"
-                  aria-checked={selected}
-                  onClick={() => toggleClient(client.id)}
-                  className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors first:rounded-t-xl last:rounded-b-xl ${
+                  className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors first:rounded-t-xl last:rounded-b-xl cursor-pointer ${
                     selected ? "bg-[var(--app-elevated)]" : "hover:bg-[var(--app-elevated)]"
                   }`}
                 >
+                  <input
+                    type="checkbox"
+                    checked={selected}
+                    onChange={() => toggleClient(client.id)}
+                    aria-label={client.name}
+                    className="sr-only"
+                  />
                   <div
                     aria-hidden="true"
                     className={`flex size-5 shrink-0 items-center justify-center rounded border transition-[background-color,border-color,transform] duration-150 ${
@@ -280,7 +286,7 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
                   >
                     {client.sessionsRemaining}
                   </span>
-                </button>
+                </label>
               );
             })}
           </div>
@@ -289,7 +295,7 @@ export default function SessionLogger({ clients }: { clients: Client[] }) {
 
       {/* Notes */}
       <div>
-        <label htmlFor="session-notes" className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
+        <label htmlFor="session-notes" className="mb-1.5 block font-sans text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
           Notes{" "}
           <span className="normal-case text-[var(--app-muted)]">(optional)</span>
         </label>

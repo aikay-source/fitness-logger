@@ -95,7 +95,7 @@ export default async function ClientDetailPage({
       {/* Package episodes track */}
       {client.packageEpisodes.length > 0 && (
         <section className="space-y-2">
-          <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
+          <h2 className="font-sans text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
             Package history
           </h2>
           <div className="divide-y divide-[var(--app-border)] rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)]">
@@ -169,7 +169,7 @@ export default async function ClientDetailPage({
       {/* Session history — grouped by month */}
       <section className="space-y-2">
         <div className="flex items-center justify-between">
-          <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
+          <h2 className="font-sans text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
             Session history
           </h2>
           {client.sessions.length > 0 && (

@@ -79,7 +79,7 @@ export default function ClientDetailClient({ client }: { client: Client }) {
       {/* Unpaid sessions card */}
       {unpaid > 0 && (
         <section className="space-y-2">
-          <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
+          <h2 className="font-sans text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
             Unpaid sessions
           </h2>
           <div className="rounded-xl border border-[var(--app-border)] border-l-2 border-l-orange-500 bg-[var(--app-surface)] p-4 overflow-hidden">
@@ -114,7 +114,7 @@ export default function ClientDetailClient({ client }: { client: Client }) {
       {/* Package card */}
       <section className="space-y-2">
         <div className="flex items-center justify-between">
-          <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
+          <h2 className="font-sans text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
             Package
           </h2>
           {!editing && (
@@ -180,7 +180,7 @@ export default function ClientDetailClient({ client }: { client: Client }) {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="pkg-sessions-bought" className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
+                  <label htmlFor="pkg-sessions-bought" className="mb-1.5 block font-sans text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
                     Sessions bought
                   </label>
                   <input
@@ -194,7 +194,7 @@ export default function ClientDetailClient({ client }: { client: Client }) {
                   />
                 </div>
                 <div>
-                  <label htmlFor="pkg-sessions-left" className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
+                  <label htmlFor="pkg-sessions-left" className="mb-1.5 block font-sans text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
                     Sessions left
                   </label>
                   <input
@@ -213,7 +213,7 @@ export default function ClientDetailClient({ client }: { client: Client }) {
               </div>
               {remaining === 0 && (
                 <div>
-                  <label htmlFor="pkg-unpaid-sessions" className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
+                  <label htmlFor="pkg-unpaid-sessions" className="mb-1.5 block font-sans text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]">
                     Unpaid sessions
                   </label>
                   <input

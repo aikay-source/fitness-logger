@@ -41,13 +41,13 @@ export default function BottomNav() {
                 )}
                 <div className={`flex items-center justify-center rounded-full size-10 transition-[background-color,transform] active:scale-[0.96] ${
                   active
-                    ? "bg-[var(--app-text)]"
+                    ? "bg-[var(--app-accent)]"
                     : "bg-[var(--app-elevated)] hover:bg-[var(--app-border)]"
                 }`}>
                   <Icon
                     size={18}
                     strokeWidth={2}
-                    className={active ? "text-[var(--app-text-inv)]" : "text-[var(--app-tertiary)]"}
+                    className={active ? "text-white" : "text-[var(--app-tertiary)]"}
                   />
                 </div>
                 <span className={`font-mono text-[10px] font-semibold uppercase tracking-widest ${

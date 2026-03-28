@@ -61,7 +61,7 @@ export default function SettingsClient({
 
   const sectionClass = "rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] divide-y divide-[var(--app-border)]";
   const rowClass = "flex items-center justify-between px-4 py-3.5";
-  const labelClass = "font-mono text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]";
+  const labelClass = "font-sans text-xs font-semibold uppercase tracking-widest text-[var(--app-tertiary)]";
   const inputClass =
     "rounded-lg border border-[var(--app-border)] bg-[var(--app-bg)] px-3 py-1.5 text-sm text-[var(--app-text)] focus:border-[var(--app-tertiary)] focus:outline-none transition-colors";
 
