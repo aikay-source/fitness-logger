@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { SALT_ROUNDS } from "@/lib/auth";
 import { registerLimiter, checkRateLimit } from "@/lib/rate-limit";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { PrismaClientKnownRequestError } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
