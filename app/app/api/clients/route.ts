@@ -47,12 +47,19 @@ export async function GET() {
   return NextResponse.json(clients);
 }
 
-export async function DELETE() {
+export async function DELETE(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session) return new NextResponse("Unauthorized", { status: 401 });
 
-  const { count } = await prisma.client.deleteMany({
-    where: { coachId: session.user.id },
+  const body = await req.json().catch(() => ({}));
+  if (body?.confirm !== "DELETE_ALL") {
+    return new NextResponse("Confirmation required", { status: 400 });
+  }
+
+  // Soft-delete: mark inactive rather than destroying data
+  const { count } = await prisma.client.updateMany({
+    where: { coachId: session.user.id, active: true },
+    data: { active: false },
   });
 
   return NextResponse.json({ deleted: count });

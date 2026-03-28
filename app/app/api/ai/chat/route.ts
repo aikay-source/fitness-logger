@@ -7,6 +7,39 @@ import { groq } from "@/lib/groq";
 import { NextResponse } from "next/server";
 import { matchNames } from "@/lib/fuzzy-match";
 import { logSession } from "@/app/actions/sessions";
+import { aiChatLimiter, checkRateLimit } from "@/lib/rate-limit";
+
+// ── Input validation & sanitization ────────────────────────────────────────────
+
+const MAX_HISTORY_ITEMS = 20;
+const MAX_TEXT_LEN = 500;
+const MAX_MESSAGE_LEN = 1000;
+
+function validateHistory(history: unknown): HistoryMessage[] {
+  if (!Array.isArray(history)) return [];
+  return history
+    .slice(0, MAX_HISTORY_ITEMS)
+    .filter(
+      (item) =>
+        item &&
+        typeof item === "object" &&
+        (item.role === "user" || item.role === "assistant") &&
+        typeof item.text === "string"
+    )
+    .map((item) => ({
+      role: item.role as "user" | "assistant",
+      text: sanitizeForLLM(String(item.text).slice(0, MAX_TEXT_LEN)),
+    }));
+}
+
+// Strip known prompt-injection delimiter sequences before sending to the LLM
+function sanitizeForLLM(text: string): string {
+  return text
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/<\|/g, "")
+    .replace(/\[INST\]/gi, "")
+    .replace(/<<SYS>>/gi, "");
+}
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -43,6 +76,7 @@ async function classifyIntent(message: string, today: string, history: HistoryMe
   const completion = await groq.chat.completions.create({
     model: "llama-3.3-70b-versatile",
     temperature: 0,
+    max_tokens: 200,
     response_format: { type: "json_object" },
     messages: [
       {
@@ -155,12 +189,25 @@ export async function POST(req: Request) {
   if (!session) return new NextResponse("Unauthorized", { status: 401 });
 
   const coachId = session.user.id;
-  const { message, history = [] } = (await req.json()) as {
+
+  // Rate limit: 30 chat queries per user per minute
+  const { limited } = await checkRateLimit(aiChatLimiter, `ai-chat:${coachId}`);
+  if (limited) {
+    return NextResponse.json<ChatResponse>(
+      { type: "error", message: "Too many requests. Please wait a moment." },
+      { status: 429 }
+    );
+  }
+
+  const { message: rawMessage, history: rawHistory = [] } = (await req.json()) as {
     message: string;
-    history?: HistoryMessage[];
+    history?: unknown[];
   };
 
-  if (!message?.trim()) {
+  const message = sanitizeForLLM(String(rawMessage ?? "").slice(0, MAX_MESSAGE_LEN));
+  const history = validateHistory(rawHistory);
+
+  if (!message.trim()) {
     return NextResponse.json<ChatResponse>({ type: "error", message: "Empty message" });
   }
 

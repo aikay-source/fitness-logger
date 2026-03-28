@@ -20,6 +20,8 @@ model User {
   packageEpisodes   PackageEpisode[]
   pushSubscriptions PushSubscription[]
   createdAt         DateTime           @default(now())
+
+  @@index([reminderEnabled, reminderTime])
 }
 
 model Client {
@@ -37,6 +39,8 @@ model Client {
   packageEpisodes        PackageEpisode[]
   createdAt              DateTime         @default(now())
   updatedAt              DateTime         @updatedAt
+
+  @@index([coachId, active, sessionsRemaining])
 }
 
 // Tracks a purchased session package (e.g. client bought 11 sessions)
@@ -77,6 +81,7 @@ model Session {
 
   // One session per client per calendar day (import only — dateKey is null for manual sessions)
   @@unique([clientId, dateKey])
+  @@index([coachId, date])
 }
 
 model PushSubscription {

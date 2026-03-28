@@ -5,10 +5,14 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { groq } from "@/lib/groq";
 import { NextResponse } from "next/server";
+import { aiParseLimiter, checkRateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session) return new NextResponse("Unauthorized", { status: 401 });
+
+  const { limited } = await checkRateLimit(aiParseLimiter, `ai-parse:${session.user.id}`);
+  if (limited) return new NextResponse("Too many requests", { status: 429 });
 
   const { year, month } = (await req.json()) as { year: number; month: number };
   const coachId = session.user.id;
@@ -53,6 +57,7 @@ export async function POST(req: Request) {
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
       temperature: 0.7,
+      max_tokens: 300,
       messages: [
         {
           role: "system",

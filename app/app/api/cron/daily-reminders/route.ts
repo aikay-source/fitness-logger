@@ -12,21 +12,15 @@ export async function GET(req: Request) {
 
   const nowUTC = new Date();
   const currentHour = nowUTC.getUTCHours().toString().padStart(2, "0");
-  // reminderTime stored as "HH:MM" in 24h UTC
-  const matchPattern = `${currentHour}:%`;
-
-  // SQLite LIKE query — find coaches whose reminder matches the current hour
-  const users = await prisma.user.findMany({
+  // reminderTime stored as "HH:MM" in 24h UTC — filter at DB level using
+  // the (reminderEnabled, reminderTime) index rather than loading all users
+  const matching = await prisma.user.findMany({
     where: {
       reminderEnabled: true,
-      reminderTime: { not: null },
+      reminderTime: { startsWith: `${currentHour}:` },
     },
     select: { id: true, name: true, reminderTime: true },
   });
-
-  const matching = users.filter(
-    (u) => u.reminderTime?.startsWith(currentHour + ":")
-  );
 
   await Promise.allSettled(
     matching.map((user) =>

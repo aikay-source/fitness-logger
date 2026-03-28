@@ -4,14 +4,16 @@ import { useState, useEffect } from "react";
 import { Sun, Moon } from "lucide-react";
 
 export default function ThemeToggle() {
-  const [dark, setDark] = useState(true);
+  // Initialize from the document class set by the inline FOUC-prevention script,
+  // so the icon matches the actual theme on first render (no flash for light-mode users).
+  const [dark, setDark] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return document.documentElement.classList.contains("dark");
+  });
 
   useEffect(() => {
-    const stored = localStorage.getItem("theme");
-    if (stored === "light") {
-      setDark(false);
-      document.documentElement.classList.remove("dark");
-    }
+    // Keep state in sync if the class was changed externally (e.g. OS preference)
+    setDark(document.documentElement.classList.contains("dark"));
   }, []);
 
   function toggle() {

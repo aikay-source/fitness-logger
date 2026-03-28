@@ -4,12 +4,17 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { groq } from "@/lib/groq";
 import { NextResponse } from "next/server";
+import { aiParseLimiter, checkRateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session) return new NextResponse("Unauthorized", { status: 401 });
 
-  const { text } = await req.json();
+  const { limited } = await checkRateLimit(aiParseLimiter, `ai-parse:${session.user.id}`);
+  if (limited) return new NextResponse("Too many requests", { status: 429 });
+
+  const { text: rawText } = await req.json();
+  const text = String(rawText ?? "").slice(0, 5000);
   if (!text?.trim()) {
     return NextResponse.json({ clients: [] });
   }
@@ -18,6 +23,7 @@ export async function POST(req: Request) {
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
       temperature: 0.1,
+      max_tokens: 150,
       response_format: { type: "json_object" },
       messages: [
         {

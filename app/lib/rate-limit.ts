@@ -21,6 +21,12 @@ export const registerLimiter = createLimiter(5, "1 h");
 // 10 login attempts per email per 15 minutes
 export const loginLimiter = createLimiter(10, "15 m");
 
+// 30 AI chat queries per user per minute
+export const aiChatLimiter = createLimiter(30, "1 m");
+
+// 10 AI parse/summary calls per user per minute
+export const aiParseLimiter = createLimiter(10, "1 m");
+
 export async function checkRateLimit(
   limiter: Ratelimit | null,
   identifier: string

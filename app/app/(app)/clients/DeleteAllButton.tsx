@@ -21,7 +21,11 @@ export default function DeleteAllButton({ count }: { count: number }) {
   async function deleteAll() {
     setDeleting(true);
     try {
-      const res = await fetch("/api/clients", { method: "DELETE" });
+      const res = await fetch("/api/clients", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirm: "DELETE_ALL" }),
+      });
       if (!res.ok) throw new Error();
       const { deleted } = await res.json();
       toast.success(`${deleted} client${deleted !== 1 ? "s" : ""} removed.`);

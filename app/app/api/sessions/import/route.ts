@@ -30,19 +30,21 @@ export async function POST(req: Request) {
 
   const nameToId = new Map<string, string>();
 
+  // Populate map for existing clients
   for (const name of uniqueNames) {
     const match = existingClients.find(
       (c) => c.name.toLowerCase() === name.toLowerCase()
     );
-    if (match) {
-      nameToId.set(name, match.id);
-    } else {
-      // Create the client if they don't exist yet
-      const created = await prisma.client.create({
-        data: { name, coachId },
-      });
-      nameToId.set(name, created.id);
-    }
+    if (match) nameToId.set(name, match.id);
+  }
+
+  // Batch-create all new clients in one round trip
+  const newNames = uniqueNames.filter((n) => !nameToId.has(n));
+  if (newNames.length > 0) {
+    const created = await prisma.client.createManyAndReturn({
+      data: newNames.map((name) => ({ name, coachId })),
+    });
+    for (const c of created) nameToId.set(c.name, c.id);
   }
 
   // ── 2. Group sessions by clientId and sort by date ────────────────────────
@@ -160,29 +162,32 @@ export async function POST(req: Request) {
   // Create episodes and build a lookup: (clientId, localEpisodeIndex) → episodeId
   const episodeIdLookup = new Map<string, string>(); // key: "clientId:localIdx"
 
-  // Track local episode index per client
-  const clientEpisodeCounter = new Map<string, number>();
-
-  for (const ep of allEpisodeCandidates) {
-    const localIdx = clientEpisodeCounter.get(ep.clientId) ?? 0;
-    clientEpisodeCounter.set(ep.clientId, localIdx + 1);
-
-    const created = await prisma.packageEpisode.create({
-      data: {
+  if (allEpisodeCandidates.length > 0) {
+    // Batch-create all episodes in one round trip; order is preserved
+    const createdEpisodes = await prisma.packageEpisode.createManyAndReturn({
+      data: allEpisodeCandidates.map((ep) => ({
         clientId: ep.clientId,
         coachId: ep.coachId,
         totalSessions: ep.totalSessions,
         startDate: ep.startDate,
         endDate: ep.endDate,
         status: ep.status,
-      },
+      })),
     });
 
-    episodeIdLookup.set(`${ep.clientId}:${localIdx}`, created.id);
+    const clientEpisodeCounter = new Map<string, number>();
+    for (let i = 0; i < allEpisodeCandidates.length; i++) {
+      const ep = allEpisodeCandidates[i];
+      const localIdx = clientEpisodeCounter.get(ep.clientId) ?? 0;
+      clientEpisodeCounter.set(ep.clientId, localIdx + 1);
+      episodeIdLookup.set(`${ep.clientId}:${localIdx}`, createdEpisodes[i].id);
+    }
   }
 
   // ── 5. Upsert sessions (overwrite by clientId + dateKey) ──────────────────
-  let importedCount = 0;
+  // Run all upserts concurrently — each has unique data (episodeId per row)
+  // so createMany can't be used, but parallel execution avoids serial blocking.
+  const upsertPromises: Promise<unknown>[] = [];
 
   for (const [clientId, clientEntries] of byClient) {
     const episodeIndexPerEntry = clientEpisodeMap.get(clientId) ?? [];
@@ -198,41 +203,39 @@ export async function POST(req: Request) {
       // Parse as noon UTC so the calendar date is stable in any timezone
       const sessionDate = new Date(entry.date + "T12:00:00.000Z");
 
-      await prisma.session.upsert({
-        where: {
-          clientId_dateKey: {
-            clientId,
-            dateKey: entry.date,
+      upsertPromises.push(
+        prisma.session.upsert({
+          where: { clientId_dateKey: { clientId, dateKey: entry.date } },
+          update: {
+            date: sessionDate,
+            sessionNumber: entry.sessionNumber,
+            packageSize: entry.packageSize,
+            paid: entry.paid,
+            packageEpisodeId: episodeId,
+            // Wipe manual notes/rawInput — import wins
+            notes: null,
+            rawInput: null,
           },
-        },
-        update: {
-          date: sessionDate,
-          sessionNumber: entry.sessionNumber,
-          packageSize: entry.packageSize,
-          paid: entry.paid,
-          packageEpisodeId: episodeId,
-          // Wipe manual notes/rawInput — import wins
-          notes: null,
-          rawInput: null,
-        },
-        create: {
-          clientId,
-          coachId,
-          date: sessionDate,
-          dateKey: entry.date,
-          sessionNumber: entry.sessionNumber,
-          packageSize: entry.packageSize,
-          paid: entry.paid,
-          packageEpisodeId: episodeId,
-        },
-      });
-
-      importedCount++;
+          create: {
+            clientId,
+            coachId,
+            date: sessionDate,
+            dateKey: entry.date,
+            sessionNumber: entry.sessionNumber,
+            packageSize: entry.packageSize,
+            paid: entry.paid,
+            packageEpisodeId: episodeId,
+          },
+        })
+      );
     }
   }
 
+  await Promise.all(upsertPromises);
+  const importedCount = upsertPromises.length;
+
   // ── 6. Recalculate and update client flat totals ───────────────────────────
-  for (const clientId of affectedClientIds) {
+  await Promise.all(affectedClientIds.map(async (clientId) => {
     const clientEntries = byClient.get(clientId)!;
 
     // Most recent entry for this client (already sorted ascending, take last)
@@ -272,7 +275,7 @@ export async function POST(req: Request) {
       where: { id: clientId },
       data: { totalSessionsPurchased, sessionsRemaining, unpaidSessions },
     });
-  }
+  }));
 
   // ── 7. Invalidate monthly summary cache for affected months ───────────────
   const affectedMonths = new Set(
@@ -282,10 +285,14 @@ export async function POST(req: Request) {
     })
   );
 
-  for (const key of affectedMonths) {
-    const [year, month] = key.split("-").map(Number);
+  // Single deleteMany with OR instead of N serial deletes
+  if (affectedMonths.size > 0) {
+    const monthConditions = [...affectedMonths].map((key) => {
+      const [year, month] = key.split("-").map(Number);
+      return { userId: coachId, year, month };
+    });
     await prisma.monthlySummaryCache.deleteMany({
-      where: { userId: coachId, year, month },
+      where: { OR: monthConditions },
     });
   }
 
