@@ -21,16 +21,21 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        });
+        try {
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email },
+          });
 
-        if (!user || !user.password) return null;
+          if (!user || !user.password) return null;
 
-        const valid = await bcrypt.compare(credentials.password, user.password);
-        if (!valid) return null;
+          const valid = await bcrypt.compare(credentials.password, user.password);
+          if (!valid) return null;
 
-        return { id: user.id, email: user.email, name: user.name };
+          return { id: user.id, email: user.email, name: user.name };
+        } catch (error) {
+          console.error("[authorize] database error:", error);
+          return null;
+        }
       },
     }),
   ],
@@ -43,11 +48,12 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user, account, profile }) {
-      if (user) {
-        // Credentials login — id already on user object
-        token.id = user.id;
-      } else if (account?.provider === "google" && profile?.email && !token.id) {
-        // Google sign-in — find or create user in DB
+      if (account?.provider === "google" && profile?.email) {
+        // Google sign-in — find or create user in DB using the email from the
+        // OAuth profile. Must run before the generic `user` check because
+        // NextAuth also populates `user` on OAuth sign-ins (with the Google
+        // sub ID, not the DB ID), so we'd store the wrong ID without this
+        // early-return branch.
         let dbUser = await prisma.user.findUnique({ where: { email: profile.email } });
         if (!dbUser) {
           dbUser = await prisma.user.create({
@@ -58,6 +64,9 @@ export const authOptions: NextAuthOptions = {
           });
         }
         token.id = dbUser.id;
+      } else if (user) {
+        // Credentials login — id is the DB user id returned by `authorize`
+        token.id = user.id;
       }
       return token;
     },
