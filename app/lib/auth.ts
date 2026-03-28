@@ -3,7 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
-const SALT_ROUNDS = 12;
+export const SALT_ROUNDS = 12;
 
 export const authOptions: NextAuthOptions = {
   // No database adapter needed for credentials — session stored as JWT
@@ -21,20 +21,7 @@ export const authOptions: NextAuthOptions = {
           where: { email: credentials.email },
         });
 
-        if (!user) {
-          // First-time registration: create user with hashed password
-          const hashedPassword = await bcrypt.hash(credentials.password, SALT_ROUNDS);
-          const newUser = await prisma.user.create({
-            data: {
-              email: credentials.email,
-              name: credentials.email.split("@")[0],
-              password: hashedPassword,
-            },
-          });
-          return { id: newUser.id, email: newUser.email, name: newUser.name };
-        }
-
-        if (!user.password) return null;
+        if (!user || !user.password) return null;
 
         const valid = await bcrypt.compare(credentials.password, user.password);
         if (!valid) return null;
