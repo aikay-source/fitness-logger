@@ -5,11 +5,11 @@ import { Redis } from "@upstash/redis";
 // runs normally, just without rate limiting. Set UPSTASH_REDIS_REST_URL and
 // UPSTASH_REDIS_REST_TOKEN in Vercel environment variables to enable.
 function createLimiter(requests: number, window: `${number} ${"ms" | "s" | "m" | "h" | "d"}`) {
-  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+  if (!process.env.UPSTASH_REDIS_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
     return null;
   }
   const redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
+    url: process.env.UPSTASH_REDIS_URL,
     token: process.env.UPSTASH_REDIS_REST_TOKEN,
   });
   return new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(requests, window) });
