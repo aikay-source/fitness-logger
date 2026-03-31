@@ -398,7 +398,7 @@ export default function AddClientsModal({
     triggerVariant === "empty-state" ? (
       <button
         onClick={() => setOpen(true)}
-        className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-[var(--app-text)] px-4 py-2 text-sm font-semibold text-[var(--app-text-inv)] hover:opacity-90 active:scale-[0.96] transition-[background-color,transform]"
+        className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-[var(--app-accent)] px-4 py-2 text-sm font-semibold text-white hover:opacity-90 active:scale-[0.96] transition-[background-color,transform]"
       >
         <PlusCircle size={14} />
         Add your first client
@@ -406,7 +406,7 @@ export default function AddClientsModal({
     ) : (
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 rounded-lg bg-[var(--app-text)] px-3 py-2 text-xs font-semibold text-[var(--app-text-inv)] hover:opacity-90 active:scale-[0.96] transition-[background-color,transform]"
+        className="flex items-center gap-1.5 rounded-lg bg-[var(--app-accent)] px-3 py-2 text-xs font-semibold text-white hover:opacity-90 active:scale-[0.96] transition-[background-color,transform]"
       >
         <PlusCircle size={13} />
         Add clients

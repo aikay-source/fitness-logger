@@ -56,10 +56,9 @@ export async function DELETE(req: Request) {
     return new NextResponse("Confirmation required", { status: 400 });
   }
 
-  // Soft-delete: mark inactive rather than destroying data
-  const { count } = await prisma.client.updateMany({
-    where: { coachId: session.user.id, active: true },
-    data: { active: false },
+  // Hard-delete all clients — cascades to sessions and package episodes
+  const { count } = await prisma.client.deleteMany({
+    where: { coachId: session.user.id },
   });
 
   return NextResponse.json({ deleted: count });
